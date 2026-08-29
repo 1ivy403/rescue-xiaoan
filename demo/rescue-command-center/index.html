@@ -1,0 +1,1188 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>小安 · AIRSHOT RESCUE 指挥台</title>
+  <style>html,body{margin:0;min-height:100%;background:#070908}body{overflow-x:hidden}#airshot-rescue-dashboard-v2{min-height:100vh}</style>
+</head>
+<body>
+<div id="airshot-rescue-dashboard-v2">
+  <style>
+    #airshot-rescue-dashboard-v2 {
+      --ar-bg: #090b0a;
+      --ar-shell: #0e100f;
+      --ar-panel: #151816;
+      --ar-panel-soft: #1a1d1b;
+      --ar-line: #363a36;
+      --ar-line-soft: #272b28;
+      --ar-text: #f2f0eb;
+      --ar-muted: #9b9c96;
+      --ar-orange: #ff612e;
+      --ar-orange-soft: #ff874f;
+      --ar-red: #ff3e4f;
+      --ar-amber: #ffb02e;
+      --ar-green: #48d18b;
+      --ar-blue: #58bdea;
+      width: 100%;
+      color: var(--ar-text);
+      font-family: "Arial Narrow", "DIN Condensed", Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+      background: transparent;
+    }
+    #airshot-rescue-dashboard-v2 * { box-sizing: border-box; letter-spacing: 0; }
+    #airshot-rescue-dashboard-v2 button { font: inherit; }
+    #airshot-rescue-dashboard-v2 .ar-shell {
+      position: relative;
+      width: 100%;
+      min-height: 900px;
+      overflow: hidden;
+      border: 1px solid var(--ar-line);
+      border-radius: 4px;
+      background:
+        linear-gradient(rgba(255,97,46,.022) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,97,46,.022) 1px,transparent 1px),
+        var(--ar-shell);
+      background-size: 30px 30px;
+    }
+    #airshot-rescue-dashboard-v2 .ar-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(0deg,transparent 0 4px,rgba(255,255,255,.011) 5px);
+    }
+    #airshot-rescue-dashboard-v2 .ar-header {
+      position: relative;
+      z-index: 2;
+      min-height: 72px;
+      display: grid;
+      grid-template-columns: minmax(190px,1fr) auto auto;
+      align-items: stretch;
+      border-bottom: 2px solid var(--ar-orange);
+      background: rgba(10,12,11,.98);
+    }
+    #airshot-rescue-dashboard-v2 .ar-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+      padding: 10px 14px;
+      border-right: 1px solid var(--ar-line);
+    }
+    #airshot-rescue-dashboard-v2 .ar-brand-mark {
+      width: 31px;
+      height: 31px;
+      display: grid;
+      place-items: center;
+      color: #170802;
+      background: var(--ar-orange);
+      clip-path: polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+      font-size: 9px;
+      font-weight: 500;
+    }
+    #airshot-rescue-dashboard-v2 .ar-brand-name { font-size: 16px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-brand-sub { margin-top: 3px; color: var(--ar-muted); font-size: 11px; }
+    #airshot-rescue-dashboard-v2 .ar-weather {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 8px 14px;
+      border-right: 1px solid var(--ar-line);
+    }
+    #airshot-rescue-dashboard-v2 .ar-weather-icon { position: relative; width: 32px; height: 30px; color: var(--ar-blue); }
+    #airshot-rescue-dashboard-v2 .ar-weather-icon svg { width: 23px; height: 23px; }
+    #airshot-rescue-dashboard-v2 .ar-weather-drop {
+      position: absolute;
+      top: 21px;
+      width: 1px;
+      height: 7px;
+      background: var(--ar-blue);
+      animation: ar-weather-drop 1s linear infinite;
+    }
+    #airshot-rescue-dashboard-v2 .ar-weather-drop.d1 { left: 7px; }
+    #airshot-rescue-dashboard-v2 .ar-weather-drop.d2 { left: 15px; animation-delay: .32s; }
+    #airshot-rescue-dashboard-v2 .ar-weather-drop.d3 { left: 23px; animation-delay: .64s; }
+    @keyframes ar-weather-drop { from { transform: translateY(-2px); opacity: .15; } to { transform: translateY(7px); opacity: 1; } }
+    #airshot-rescue-dashboard-v2 .ar-weather-main { color: var(--ar-blue); font-size: 13px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-weather-sub { margin-top: 2px; color: var(--ar-muted); font-size: 10px; }
+    #airshot-rescue-dashboard-v2 .ar-weather-data { padding-left: 12px; border-left: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-weather-data span { display: block; color: var(--ar-muted); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-weather-data strong { display: block; margin-top: 3px; font-size: 12px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-system {
+      display: grid;
+      grid-template-columns: repeat(3,auto);
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
+      color: var(--ar-muted);
+      font-size: 10px;
+    }
+    #airshot-rescue-dashboard-v2 .ar-system strong { display: block; color: var(--ar-green); font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-system span { display: block; margin-top: 2px; }
+    #airshot-rescue-dashboard-v2 .ar-command {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(320px,.86fr) minmax(0,1fr) minmax(0,1fr);
+      min-height: 132px;
+      border-bottom: 1px solid var(--ar-line);
+    }
+    #airshot-rescue-dashboard-v2 .ar-situation {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 14px 16px;
+      background: #141715;
+    }
+    #airshot-rescue-dashboard-v2 .ar-command-label { color: var(--ar-orange); font-size: 10px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-situation-title { margin-top: 6px; font-size: 20px; font-weight: 500; line-height: 1.2; }
+    #airshot-rescue-dashboard-v2 .ar-situation-copy { margin-top: 6px; color: var(--ar-muted); font-size: 11px; line-height: 1.45; }
+    #airshot-rescue-dashboard-v2 .ar-situation-stats { display: grid; grid-template-columns: repeat(3,auto); gap: 13px; }
+    #airshot-rescue-dashboard-v2 .ar-situation-stat { min-width: 52px; padding-left: 10px; border-left: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-situation-stat strong { display: block; font-size: 24px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-situation-stat strong.critical { color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-situation-stat strong.warning { color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-situation-stat span { display: block; margin-top: 3px; color: var(--ar-muted); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-action {
+      position: relative;
+      min-width: 0;
+      padding: 11px 15px;
+      color: #1a0802;
+      background: var(--ar-orange);
+    }
+    #airshot-rescue-dashboard-v2 .ar-action.scout { color: var(--ar-text); background: #171a18; border-left: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-action-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    #airshot-rescue-dashboard-v2 .ar-action-kicker { font-size: 11px; font-weight: 600; }
+    #airshot-rescue-dashboard-v2 .ar-parallel-label { flex: none; padding-left: 8px; border-left: 1px solid rgba(26,8,2,.35); font-size: 9px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-action.scout .ar-parallel-label { color: var(--ar-amber); border-color: var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-action-title { margin-top: 5px; font-size: 18px; font-weight: 600; line-height: 1.22; }
+    #airshot-rescue-dashboard-v2 .ar-action-copy { margin-top: 4px; font-size: 11px; line-height: 1.35; }
+    #airshot-rescue-dashboard-v2 .ar-action-controls { display: flex; align-items: center; gap: 7px; margin-top: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-command-button { min-height: 29px; padding: 5px 10px; border: 1px solid rgba(25,7,2,.64); border-radius: 2px; color: var(--ar-text); background: #17100d; cursor: pointer; font-size: 10px; font-weight: 600; }
+    #airshot-rescue-dashboard-v2 .ar-command-button.secondary { color: #1a0802; background: transparent; }
+    #airshot-rescue-dashboard-v2 .ar-action.scout .ar-command-button { color: #1b0f03; border-color: var(--ar-amber); background: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-action.scout .ar-command-button.secondary { color: var(--ar-amber); background: transparent; }
+    #airshot-rescue-dashboard-v2 .ar-command-button:hover { filter: brightness(1.12); }
+    #airshot-rescue-dashboard-v2 .ar-command-button:focus-visible { outline: 2px solid var(--ar-text); outline-offset: 2px; }
+    #airshot-rescue-dashboard-v2 .ar-command-button:disabled { cursor: default; opacity: .58; }
+    #airshot-rescue-dashboard-v2 .ar-action-status { margin-left: auto; font-size: 9px; line-height: 1.3; text-align: right; }
+    #airshot-rescue-dashboard-v2 .ar-action.scout .ar-action-status { color: var(--ar-muted); }
+    #airshot-rescue-dashboard-v2 .ar-action-status strong { display: block; font-size: 12px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-plan-options { position: absolute; z-index: 8; right: 14px; bottom: 47px; display: none; min-width: 190px; padding: 7px; border: 1px solid #111; background: #f1ede5; box-shadow: 0 12px 24px rgba(0,0,0,.28); }
+    #airshot-rescue-dashboard-v2 .ar-action.is-adjusting .ar-plan-options { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    #airshot-rescue-dashboard-v2 .ar-plan-option { padding: 7px 8px; border: 1px solid #5c514c; border-radius: 1px; color: #22110a; background: transparent; cursor: pointer; font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-plan-option[aria-pressed="true"] { color: #fff; background: #1b110d; }
+    #airshot-rescue-dashboard-v2 .ar-layout {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0,1.04fr) minmax(330px,.96fr);
+      min-height: 714px;
+    }
+    #airshot-rescue-dashboard-v2 .ar-left { min-width: 0; border-right: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-right { min-width: 0; display: grid; grid-template-rows: 360px 1fr; }
+    #airshot-rescue-dashboard-v2 .ar-panel-head {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 11px;
+      border-bottom: 1px solid var(--ar-line);
+      background: rgba(21,24,22,.96);
+      color: var(--ar-muted);
+      font-size: 10px;
+    }
+    #airshot-rescue-dashboard-v2 .ar-panel-title { display: flex; align-items: center; gap: 7px; color: var(--ar-text); font-size: 12px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-panel-title::before { content: ""; width: 3px; height: 12px; background: var(--ar-orange); }
+    #airshot-rescue-dashboard-v2 .ar-live-panel { height: 326px; border-bottom: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-live-feed {
+      position: relative;
+      height: 284px;
+      overflow: hidden;
+      background:
+        linear-gradient(154deg,transparent 0 42%,rgba(205,215,208,.15) 43% 54%,transparent 55%),
+        linear-gradient(20deg,rgba(190,199,194,.12) 0 20%,transparent 21% 68%,rgba(190,199,194,.09) 69%),
+        linear-gradient(140deg,#28302d,#090d0c 62%,#1e2824);
+    }
+    #airshot-rescue-dashboard-v2 .ar-rain-field {
+      position: absolute;
+      inset: -45px;
+      opacity: .48;
+      background: repeating-linear-gradient(106deg,transparent 0 18px,rgba(88,189,234,.34) 19px 20px,transparent 21px 37px);
+      animation: ar-rain-field 2.1s linear infinite;
+    }
+    @keyframes ar-rain-field { to { transform: translate(-35px,50px); } }
+    #airshot-rescue-dashboard-v2 .ar-hud-grid {
+      position: absolute;
+      inset: 0;
+      opacity: .18;
+      background: linear-gradient(rgba(255,97,46,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(255,97,46,.18) 1px,transparent 1px);
+      background-size: 48px 48px;
+    }
+    #airshot-rescue-dashboard-v2 .ar-scan {
+      position: absolute;
+      inset: 0;
+      width: 38%;
+      background: linear-gradient(90deg,transparent,rgba(255,97,46,.13),transparent);
+      animation: ar-scan 4s linear infinite;
+    }
+    @keyframes ar-scan { from { transform: translateX(-120%); } to { transform: translateX(360%); } }
+    #airshot-rescue-dashboard-v2 .ar-live-label {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 8px;
+      color: #f4f1ec;
+      background: rgba(5,8,7,.78);
+      border-left: 2px solid var(--ar-red);
+      font-size: 10px;
+    }
+    #airshot-rescue-dashboard-v2 .ar-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ar-red); animation: ar-pulse 1.5s ease-in-out infinite; }
+    @keyframes ar-pulse { 50% { opacity: .2; } }
+    #airshot-rescue-dashboard-v2 .ar-detection {
+      position: absolute;
+      left: 58%;
+      top: 28%;
+      width: 67px;
+      height: 112px;
+      border: 1px solid var(--ar-orange);
+      box-shadow: 0 0 20px rgba(255,97,46,.18);
+    }
+    #airshot-rescue-dashboard-v2 .ar-detection::before {
+      content: "P-03 · PERSON 0.93";
+      position: absolute;
+      left: -1px;
+      bottom: 100%;
+      padding: 4px 6px;
+      color: #180702;
+      background: var(--ar-orange);
+      font-size: 9px;
+      white-space: nowrap;
+    }
+    #airshot-rescue-dashboard-v2 .ar-person-head { width: 20px; height: 20px; margin: 15px auto 6px; border-radius: 50%; background: rgba(242,240,235,.75); }
+    #airshot-rescue-dashboard-v2 .ar-person-body { width: 37px; height: 65px; margin: auto; clip-path: polygon(25% 0,75% 0,100% 100%,0 100%); background: rgba(242,240,235,.52); }
+    #airshot-rescue-dashboard-v2 .ar-live-meta {
+      position: absolute;
+      right: 10px;
+      bottom: 9px;
+      padding: 6px 8px;
+      color: rgba(242,240,235,.76);
+      background: rgba(5,8,7,.68);
+      font-size: 9px;
+      line-height: 1.55;
+      text-align: right;
+    }
+    #airshot-rescue-dashboard-v2 .ar-stream { min-height: 418px; }
+    #airshot-rescue-dashboard-v2 .ar-stream-body { padding: 5px 12px 12px; }
+    #airshot-rescue-dashboard-v2 .ar-log {
+      display: grid;
+      grid-template-columns: 55px 52px 1fr 38px;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--ar-line-soft);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+    #airshot-rescue-dashboard-v2 .ar-log-time { color: #6f7772; font-variant-numeric: tabular-nums; }
+    #airshot-rescue-dashboard-v2 .ar-log-type { color: var(--ar-orange-soft); font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-log-type.audio { color: var(--ar-blue); }
+    #airshot-rescue-dashboard-v2 .ar-log-type.risk { color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-log-copy { color: #c6ccc8; }
+    #airshot-rescue-dashboard-v2 .ar-log-score { color: var(--ar-muted); text-align: right; }
+    #airshot-rescue-dashboard-v2 .ar-stream-summary { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; margin-top: 10px; background: var(--ar-line); border: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-stream-stat { min-width: 0; padding: 8px; background: #101311; }
+    #airshot-rescue-dashboard-v2 .ar-stream-stat span { display: block; color: var(--ar-muted); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-stream-stat strong { display: block; margin-top: 4px; color: var(--ar-text); font-size: 12px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-stream-stat strong.live { color: var(--ar-green); }
+    #airshot-rescue-dashboard-v2 .ar-overview { min-height: 0; border-bottom: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-overview-body { padding: 9px 11px 11px; }
+    #airshot-rescue-dashboard-v2 .ar-kpis {
+      display: grid;
+      grid-template-columns: 1.25fr repeat(3,1fr);
+      gap: 1px;
+      background: var(--ar-line);
+      border: 1px solid var(--ar-line);
+    }
+    #airshot-rescue-dashboard-v2 .ar-kpi { min-width: 0; padding: 7px 8px; background: #111412; }
+    #airshot-rescue-dashboard-v2 .ar-kpi.primary { color: #170702; background: var(--ar-orange); }
+    #airshot-rescue-dashboard-v2 .ar-kpi-label { color: var(--ar-muted); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-kpi.primary .ar-kpi-label { color: rgba(23,7,2,.66); }
+    #airshot-rescue-dashboard-v2 .ar-kpi-value { margin-top: 3px; font-size: 21px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-kpi.primary .ar-kpi-value { font-size: 26px; }
+    #airshot-rescue-dashboard-v2 .ar-kpi-value.red { color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-kpi-value.green { color: var(--ar-green); }
+    #airshot-rescue-dashboard-v2 .ar-kpi-unit { margin-left: 2px; color: var(--ar-muted); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-kpi.primary .ar-kpi-unit { color: rgba(23,7,2,.62); }
+    #airshot-rescue-dashboard-v2 .ar-analysis {
+      display: grid;
+      grid-template-columns: minmax(0,1.42fr) minmax(120px,.72fr);
+      gap: 9px;
+      margin-top: 9px;
+    }
+    #airshot-rescue-dashboard-v2 .ar-figure-head { display: flex; justify-content: space-between; gap: 6px; color: var(--ar-muted); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-figure-head strong { color: var(--ar-text); font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-map { width: 100%; height: 194px; margin-top: 5px; border: 1px solid var(--ar-line); background: #080c0b; }
+    #airshot-rescue-dashboard-v2 .ar-map .map-grid { stroke: #2a312d; stroke-width: .6; }
+    #airshot-rescue-dashboard-v2 .ar-map .map-room { fill: #141a17; stroke: #555d57; stroke-width: 1; }
+    #airshot-rescue-dashboard-v2 .ar-map .map-wall { fill: none; stroke: #909990; stroke-width: 5; stroke-linejoin: bevel; }
+    #airshot-rescue-dashboard-v2 .ar-map .map-route { fill: none; stroke: var(--ar-orange); stroke-width: 2.2; stroke-dasharray: 5 3; animation: ar-route 3.5s linear infinite; }
+    @keyframes ar-route { to { stroke-dashoffset: -24; } }
+    #airshot-rescue-dashboard-v2 .ar-map .map-danger { fill: rgba(255,62,79,.18); stroke: var(--ar-red); stroke-width: 1; }
+    #airshot-rescue-dashboard-v2 .ar-map .map-water { fill: rgba(88,189,234,.15); stroke: var(--ar-blue); stroke-width: 1; }
+    #airshot-rescue-dashboard-v2 .ar-map .map-label { fill: #a3aba5; font-size: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-map .map-small { fill: #7d8780; font-size: 7px; }
+    #airshot-rescue-dashboard-v2 .ar-map .map-target { stroke: #080c0b; stroke-width: 2; }
+    #airshot-rescue-dashboard-v2 .ar-radar { width: 100%; height: 136px; margin-top: 5px; overflow: visible; }
+    #airshot-rescue-dashboard-v2 .ar-radar .radar-grid { fill: none; stroke: #4a4e4b; stroke-width: .8; }
+    #airshot-rescue-dashboard-v2 .ar-radar .radar-axis { stroke: #343936; stroke-width: .8; }
+    #airshot-rescue-dashboard-v2 .ar-radar .radar-area { fill: rgba(255,97,46,.17); stroke: var(--ar-orange); stroke-width: 1.5; filter: drop-shadow(0 0 5px rgba(255,97,46,.35)); }
+    #airshot-rescue-dashboard-v2 .ar-radar .radar-label { fill: #a7ada9; font-size: 7px; }
+    #airshot-rescue-dashboard-v2 .ar-radar .radar-node { fill: var(--ar-orange); }
+    #airshot-rescue-dashboard-v2 .ar-risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px; }
+    #airshot-rescue-dashboard-v2 .ar-risk-grid span { padding: 6px; color: var(--ar-muted); background: #101412; border-left: 3px solid var(--ar-line); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-risk-grid strong { font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-risk-grid [data-level="high"] { border-color: var(--ar-red); background: rgba(255,62,79,.08); }
+    #airshot-rescue-dashboard-v2 .ar-risk-grid [data-level="high"] strong { color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-risk-grid [data-level="medium"] { border-color: var(--ar-amber); background: rgba(255,176,46,.07); }
+    #airshot-rescue-dashboard-v2 .ar-risk-grid [data-level="medium"] strong { color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-risk-grid [data-level="low"] { border-color: var(--ar-green); background: rgba(72,209,139,.07); }
+    #airshot-rescue-dashboard-v2 .ar-risk-grid [data-level="low"] strong { color: var(--ar-green); }
+    #airshot-rescue-dashboard-v2 .ar-targets { min-height: 0; }
+    #airshot-rescue-dashboard-v2 .ar-target-tabs { display: flex; gap: 6px; padding: 9px 11px 0; overflow-x: auto; }
+    #airshot-rescue-dashboard-v2 .ar-target-tab {
+      flex: none;
+      padding: 7px 9px;
+      border: 1px solid var(--ar-line);
+      border-radius: 2px;
+      background: #101311;
+      color: var(--ar-muted);
+      cursor: pointer;
+      font-size: 10px;
+    }
+    #airshot-rescue-dashboard-v2 .ar-target-tab[aria-pressed="true"] { border-color: var(--ar-orange); color: var(--ar-text); background: rgba(255,97,46,.11); }
+    #airshot-rescue-dashboard-v2 .ar-target-detail { display: grid; grid-template-columns: minmax(190px,220px) 1fr; gap: 10px; padding: 9px 11px 12px; }
+    #airshot-rescue-dashboard-v2 .ar-priority {
+      display: flex;
+      flex-direction: column;
+      min-height: 304px;
+      border: 1px solid var(--ar-red);
+      background: rgba(255,62,79,.05);
+    }
+    #airshot-rescue-dashboard-v2 .ar-priority[data-level="medium"] { border-color: var(--ar-orange); background: rgba(255,97,46,.05); }
+    #airshot-rescue-dashboard-v2 .ar-priority[data-level="unknown"] { border-color: var(--ar-muted); background: rgba(155,156,150,.05); }
+    #airshot-rescue-dashboard-v2 .ar-priority-head { padding: 9px 8px; color: #190507; background: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-priority[data-level="medium"] .ar-priority-head { color: #180702; background: var(--ar-orange); }
+    #airshot-rescue-dashboard-v2 .ar-priority[data-level="unknown"] .ar-priority-head { color: #111; background: var(--ar-muted); }
+    #airshot-rescue-dashboard-v2 .ar-priority-head span { display: block; font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-priority-head strong { display: block; margin-top: 2px; font-size: 25px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-target-image {
+      position: relative;
+      flex: 1;
+      min-height: 190px;
+      overflow: hidden;
+      background: #0a0d0c;
+    }
+    #airshot-rescue-dashboard-v2 .ar-target-image::before { content: "360° REFRAME"; position: absolute; z-index: 2; right: 8px; top: 8px; padding: 4px 6px; color: var(--ar-text); background: rgba(8,11,10,.72); border-left: 2px solid var(--ar-orange); font-size: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-target-photo { width: 100%; height: 100%; min-height: 216px; display: block; object-fit: cover; object-position: center; }
+    #airshot-rescue-dashboard-v2 .ar-image-overlay { position: absolute; z-index: 2; inset: auto 0 0; padding: 24px 9px 9px; background: linear-gradient(transparent,rgba(5,7,6,.92)); }
+    #airshot-rescue-dashboard-v2 .ar-image-overlay strong { display: block; color: var(--ar-text); font-size: 11px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-image-overlay span { display: block; margin-top: 3px; color: #c8cec9; font-size: 9px; line-height: 1.35; }
+    #airshot-rescue-dashboard-v2 .ar-target-main { min-width: 0; }
+    #airshot-rescue-dashboard-v2 .ar-conclusion { padding: 8px 9px; border-left: 3px solid var(--ar-red); background: rgba(255,62,79,.06); }
+    #airshot-rescue-dashboard-v2 .ar-conclusion-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-conclusion-label { color: var(--ar-red); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-difficulty-badge { flex: none; padding: 4px 6px; border-left: 3px solid var(--ar-red); color: var(--ar-red); background: rgba(255,62,79,.09); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-difficulty-badge[data-level="medium"] { border-color: var(--ar-amber); color: var(--ar-amber); background: rgba(255,176,46,.08); }
+    #airshot-rescue-dashboard-v2 .ar-difficulty-badge[data-level="unknown"] { border-color: var(--ar-muted); color: var(--ar-muted); background: rgba(155,156,150,.08); }
+    #airshot-rescue-dashboard-v2 .ar-conclusion-title { margin-top: 5px; font-size: 15px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-conclusion-copy { margin-top: 5px; color: #c6ccc8; font-size: 10px; line-height: 1.5; }
+    #airshot-rescue-dashboard-v2 .ar-facts { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; margin-top: 7px; background: var(--ar-line); border: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-fact { min-width: 0; padding: 7px; background: #101311; }
+    #airshot-rescue-dashboard-v2 .ar-fact span { display: block; color: var(--ar-muted); font-size: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-fact strong { display: block; margin-top: 3px; font-size: 10px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-fact strong.good { color: var(--ar-green); }
+    #airshot-rescue-dashboard-v2 .ar-fact strong.bad { color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-detail-row { display: grid; grid-template-columns: 68px 1fr; gap: 7px; padding: 7px 0; border-bottom: 1px solid var(--ar-line-soft); font-size: 9px; line-height: 1.45; }
+    #airshot-rescue-dashboard-v2 .ar-detail-label { color: var(--ar-muted); }
+    #airshot-rescue-dashboard-v2 .ar-detail-value { color: #c9cfcb; }
+    #airshot-rescue-dashboard-v2 .ar-detail-value.location { color: var(--ar-blue); }
+    #airshot-rescue-dashboard-v2 .ar-operational {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(520px,1.14fr) minmax(300px,.55fr) minmax(390px,.76fr);
+      min-height: 632px;
+      border-bottom: 1px solid var(--ar-line);
+    }
+    #airshot-rescue-dashboard-v2 .ar-scene-column { min-width: 0; border-right: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-live-panel.operational { height: 372px; }
+    #airshot-rescue-dashboard-v2 .ar-live-panel.operational .ar-live-feed { height: 330px; }
+    #airshot-rescue-dashboard-v2 .ar-live-photo,
+    #airshot-rescue-dashboard-v2 .ar-live-video { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center 51%; filter: saturate(.78) contrast(1.06) brightness(.84); }
+    #airshot-rescue-dashboard-v2 .ar-live-feed::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg,rgba(4,6,5,.2),transparent 26%,transparent 70%,rgba(4,6,5,.34)); }
+    #airshot-rescue-dashboard-v2 .ar-current-observation { position: absolute; z-index: 4; top: 11px; left: 11px; padding: 7px 9px; border-left: 3px solid var(--ar-red); color: var(--ar-text); background: rgba(6,8,7,.82); font-size: 11px; font-weight: 500; transition: border-color .2s ease; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p1"] .ar-current-observation { border-color: #aab0aa; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p2"] .ar-current-observation { border-color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="transition"] .ar-current-observation { border-color: var(--ar-blue); }
+    #airshot-rescue-dashboard-v2 .ar-understanding { position: absolute; z-index: 4; padding: 5px 7px; color: var(--ar-text); background: rgba(8,10,9,.84); border-left: 3px solid var(--ar-orange); font-size: 10px; line-height: 1.35; transition: left .18s ease, right .18s ease, top .18s ease, bottom .18s ease, opacity .16s ease; }
+    #airshot-rescue-dashboard-v2 .ar-understanding::after { content: ""; position: absolute; width: 26px; height: 1px; background: currentColor; opacity: .7; }
+    #airshot-rescue-dashboard-v2 .ar-understanding.person { left: 18%; top: 45%; border-color: var(--ar-green); }
+    #airshot-rescue-dashboard-v2 .ar-understanding.person::after { left: 100%; top: 50%; }
+    #airshot-rescue-dashboard-v2 .ar-understanding.pressure { left: 37%; bottom: 15%; border-color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-understanding.pressure::after { left: 100%; top: 50%; }
+    #airshot-rescue-dashboard-v2 .ar-understanding.structure { left: 55%; top: 24%; border-color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-understanding.structure::after { right: 100%; top: 50%; }
+    #airshot-rescue-dashboard-v2 .ar-understanding.route { right: 7%; top: 55%; border-color: var(--ar-orange); }
+    #airshot-rescue-dashboard-v2 .ar-understanding.route::after { right: 100%; top: 50%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p3"] .ar-understanding.person { left: 45%; top: 43%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p3"] .ar-understanding.pressure { left: 49%; bottom: 13%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p3"] .ar-understanding.structure { left: 57%; top: 24%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p1"] .ar-understanding.person { left: 27%; top: 41%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p1"] .ar-understanding.pressure { left: 50%; bottom: 19%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p1"] .ar-understanding.structure { left: 58%; top: 19%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p2"] .ar-understanding.person { left: 52%; top: 32%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p2"] .ar-understanding.pressure { left: 39%; bottom: 18%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="p2"] .ar-understanding.structure { left: 8%; top: 19%; }
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="transition"] .ar-understanding,
+    #airshot-rescue-dashboard-v2 .ar-live-feed[data-observation="transition"] .ar-spatial-overlay { opacity: 0; }
+    #airshot-rescue-dashboard-v2 .ar-spatial-overlay { position: absolute; z-index: 3; inset: 0; width: 100%; height: 100%; pointer-events: none; transition: opacity .16s ease; }
+    #airshot-rescue-dashboard-v2 .ar-hazard-outline { fill: rgba(255,62,79,.07); stroke: var(--ar-red); stroke-width: 1.2; stroke-dasharray: 5 3; filter: drop-shadow(0 0 4px rgba(255,62,79,.4)); vector-effect: non-scaling-stroke; }
+    #airshot-rescue-dashboard-v2 .ar-evacuation-route { fill: none; stroke: var(--ar-orange); stroke-width: 2.6; stroke-dasharray: 8 5; filter: drop-shadow(0 0 4px rgba(255,97,46,.68)); animation: ar-route 2.3s linear infinite; transition: stroke-width .2s ease, filter .2s ease; vector-effect: non-scaling-stroke; }
+    #airshot-rescue-dashboard-v2 .ar-route-label { fill: #fff; font-size: 1.25px; font-weight: 600; paint-order: stroke; stroke: rgba(5,7,6,.92); stroke-width: .45px; }
+    #airshot-rescue-dashboard-v2.route-focus .ar-evacuation-route { stroke-width: 4.2; filter: drop-shadow(0 0 9px rgba(255,176,46,.95)); }
+    #airshot-rescue-dashboard-v2.route-focus .ar-map .map-route { stroke-width: 4; filter: drop-shadow(0 0 6px rgba(255,176,46,.85)); }
+    #airshot-rescue-dashboard-v2 .ar-live-stream { min-width: 0; height: 632px; display: flex; flex-direction: column; border-right: 1px solid var(--ar-line); background: #0d100e; }
+    #airshot-rescue-dashboard-v2 .ar-live-stream .ar-panel-head { min-height: 42px; }
+    #airshot-rescue-dashboard-v2 .ar-understanding-log { flex: 1; min-height: 0; padding: 5px 12px 10px; overflow-y: auto; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--ar-line) transparent; }
+    #airshot-rescue-dashboard-v2 .ar-stream-log { display: grid; grid-template-columns: 48px 47px 1fr; gap: 7px; padding: 12px 0; border-bottom: 1px solid var(--ar-line-soft); opacity: 0; transform: translateY(8px); transition: opacity .35s ease, transform .35s ease; }
+    #airshot-rescue-dashboard-v2 .ar-stream-log.show,
+    #airshot-rescue-dashboard-v2 .ar-decision-log.show { opacity: 1; transform: none; }
+    #airshot-rescue-dashboard-v2 .ar-stream-time { color: #69716c; font-size: 9px; font-variant-numeric: tabular-nums; }
+    #airshot-rescue-dashboard-v2 .ar-stream-type { color: var(--ar-orange-soft); font-size: 9px; font-weight: 700; }
+    #airshot-rescue-dashboard-v2 .ar-stream-type.audio { color: var(--ar-blue); }
+    #airshot-rescue-dashboard-v2 .ar-stream-type.pose { color: var(--ar-green); }
+    #airshot-rescue-dashboard-v2 .ar-stream-type.risk { color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-stream-type.command { color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-stream-copy { color: #c1c8c4; font-size: 10px; line-height: 1.55; }
+    #airshot-rescue-dashboard-v2 .ar-decision-log { margin: 11px 0; padding: 12px; border: 1px solid var(--ar-red); border-left-width: 4px; background: rgba(255,62,79,.065); opacity: 0; transform: translateY(8px); transition: opacity .35s ease, transform .35s ease; }
+    #airshot-rescue-dashboard-v2 .ar-decision-log.scout { border-color: var(--ar-amber); background: rgba(255,176,46,.06); }
+    #airshot-rescue-dashboard-v2 .ar-decision-label { color: var(--ar-red); font-size: 9px; font-weight: 700; }
+    #airshot-rescue-dashboard-v2 .ar-decision-log.scout .ar-decision-label { color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-decision-title { margin-top: 7px; color: var(--ar-text); font-size: 14px; font-weight: 600; line-height: 1.3; }
+    #airshot-rescue-dashboard-v2 .ar-decision-score { margin-top: 6px; color: var(--ar-muted); font-size: 9px; line-height: 1.45; }
+    #airshot-rescue-dashboard-v2 .ar-map-panel { min-height: 260px; }
+    #airshot-rescue-dashboard-v2 .ar-map-panel .ar-map-wrap { padding: 8px 11px 10px; }
+    #airshot-rescue-dashboard-v2 .ar-map-panel .ar-map { height: 204px; margin-top: 0; }
+    #airshot-rescue-dashboard-v2 .ar-queue-column { min-width: 0; background: rgba(12,14,13,.72); }
+    #airshot-rescue-dashboard-v2 .ar-queue-list { display: grid; gap: 6px; padding: 9px 11px; }
+    #airshot-rescue-dashboard-v2 .ar-queue-card { display: grid; grid-template-columns: 50px 94px 1fr; min-height: 110px; border: 1px solid var(--ar-line); border-left: 4px solid #68706a; background: #111412; }
+    #airshot-rescue-dashboard-v2 .ar-queue-card.critical { border-left-color: var(--ar-red); background: rgba(255,62,79,.055); }
+    #airshot-rescue-dashboard-v2 .ar-queue-card.scouting { border-left-color: var(--ar-amber); background: rgba(255,176,46,.055); }
+    #airshot-rescue-dashboard-v2 .ar-queue-rank { display: grid; place-items: center; border-right: 1px solid var(--ar-line); color: var(--ar-muted); font-size: 11px; }
+    #airshot-rescue-dashboard-v2 .ar-queue-rank strong { display: block; color: var(--ar-text); font-size: 24px; font-weight: 500; line-height: 1; text-align: center; }
+    #airshot-rescue-dashboard-v2 .ar-queue-thumb { width: 94px; height: 108px; display: block; object-fit: cover; filter: saturate(.72) contrast(1.04) brightness(.82); }
+    #airshot-rescue-dashboard-v2 .ar-queue-content { position: relative; min-width: 0; padding: 9px 10px 28px; }
+    #airshot-rescue-dashboard-v2 .ar-queue-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-queue-id { font-size: 13px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-queue-state { flex: none; color: var(--ar-muted); font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-queue-card.critical .ar-queue-state { color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-queue-card.scouting .ar-queue-state { color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-queue-reason { margin-top: 7px; color: #c7cdc9; font-size: 10px; line-height: 1.4; }
+    #airshot-rescue-dashboard-v2 .ar-queue-action { margin-top: 6px; color: var(--ar-text); font-size: 10px; font-weight: 500; line-height: 1.35; }
+    #airshot-rescue-dashboard-v2 .ar-queue-card.critical .ar-queue-action { color: var(--ar-orange-soft); }
+    #airshot-rescue-dashboard-v2 .ar-queue-card.scouting .ar-queue-action { color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-queue-view { position: absolute; right: 10px; bottom: 7px; padding: 2px 0; border: 0; border-bottom: 1px solid currentColor; color: var(--ar-muted); background: transparent; cursor: pointer; font-size: 9px; }
+    #airshot-rescue-dashboard-v2 .ar-queue-card.critical .ar-queue-view { color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-queue-card.scouting .ar-queue-view { color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-queue-view:hover { color: var(--ar-text); }
+    #airshot-rescue-dashboard-v2 .ar-major-risks { padding: 0 11px 11px; }
+    #airshot-rescue-dashboard-v2 .ar-risk-title { padding: 8px 0 6px; color: var(--ar-text); border-bottom: 1px solid var(--ar-line); font-size: 11px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-risk-head,
+    #airshot-rescue-dashboard-v2 .ar-risk-row { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,.95fr) minmax(86px,.75fr); gap: 8px; align-items: center; }
+    #airshot-rescue-dashboard-v2 .ar-risk-head { padding: 6px 0; color: var(--ar-muted); border-bottom: 1px solid var(--ar-line); font-size: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-risk-row { padding: 7px 0; border-bottom: 1px solid var(--ar-line-soft); font-size: 9px; line-height: 1.3; }
+    #airshot-rescue-dashboard-v2 .ar-risk-level { font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-risk-level.high { color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-risk-level.medium { color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-risk-level.low { color: var(--ar-green); }
+    #airshot-rescue-dashboard-v2 .ar-risk-subject { color: #c7cdc9; }
+    #airshot-rescue-dashboard-v2 .ar-risk-impact { color: var(--ar-muted); }
+    #airshot-rescue-dashboard-v2 .ar-risk-measure { color: var(--ar-text); font-weight: 600; }
+    #airshot-rescue-dashboard-v2 .ar-target-dialog { width: min(1080px,calc(100vw - 48px)); max-width: none; max-height: calc(100vh - 48px); padding: 0; border: 1px solid var(--ar-line); border-top: 3px solid var(--ar-red); border-radius: 3px; color: var(--ar-text); background: #0d100e; box-shadow: 0 28px 90px rgba(0,0,0,.72); overflow: hidden; }
+    #airshot-rescue-dashboard-v2 .ar-target-dialog[data-level="stable"] { border-top-color: #8d948e; }
+    #airshot-rescue-dashboard-v2 .ar-target-dialog[data-level="unknown"] { border-top-color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-target-dialog::backdrop { background: rgba(2,4,3,.82); backdrop-filter: blur(5px); }
+    #airshot-rescue-dashboard-v2 .ar-dialog-head { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 13px 16px; border-bottom: 1px solid var(--ar-line); background: #131614; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-kicker { color: var(--ar-orange-soft); font-size: 9px; font-weight: 700; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-title { margin-top: 5px; font-size: 22px; font-weight: 600; line-height: 1.15; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-title span { margin-left: 8px; color: var(--ar-muted); font-size: 12px; font-weight: 400; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-close { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; border: 1px solid var(--ar-line); border-radius: 2px; color: var(--ar-text); background: transparent; cursor: pointer; font-size: 22px; line-height: 1; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-close:hover { border-color: var(--ar-orange); color: var(--ar-orange); }
+    #airshot-rescue-dashboard-v2 .ar-dialog-body { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(350px,.65fr); min-height: 540px; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-visual { min-width: 0; padding: 14px; border-right: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-detail-image { position: relative; height: 100%; min-height: 500px; overflow: hidden; background: #080a09; }
+    #airshot-rescue-dashboard-v2 .ar-detail-image img { width: 100%; height: 100%; display: block; object-fit: cover; filter: saturate(.78) contrast(1.05) brightness(.84); }
+    #airshot-rescue-dashboard-v2 .ar-detail-image::after { content: "360° AUTO REFRAME · EVIDENCE VIEW"; position: absolute; z-index: 2; left: 11px; bottom: 10px; padding: 5px 7px; border-left: 2px solid var(--ar-orange); color: var(--ar-text); background: rgba(5,7,6,.78); font-size: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-detail-annotation { position: absolute; z-index: 3; max-width: 170px; padding: 6px 8px; border-left: 3px solid var(--ar-orange); color: var(--ar-text); background: rgba(7,9,8,.86); font-size: 10px; line-height: 1.35; }
+    #airshot-rescue-dashboard-v2 .ar-detail-annotation.a1 { left: 12%; top: 36%; border-color: var(--ar-green); }
+    #airshot-rescue-dashboard-v2 .ar-detail-annotation.a2 { left: 40%; bottom: 13%; border-color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-detail-annotation.a3 { right: 7%; top: 22%; border-color: var(--ar-red); }
+    #airshot-rescue-dashboard-v2 .ar-detail-annotation.a4 { right: 7%; bottom: 20%; border-color: var(--ar-orange); }
+    #airshot-rescue-dashboard-v2 .ar-dialog-info { min-width: 0; padding: 14px 16px 18px; overflow-y: auto; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-conclusion { padding: 11px 12px; border-left: 4px solid var(--ar-red); background: rgba(255,62,79,.07); }
+    #airshot-rescue-dashboard-v2 .ar-target-dialog[data-level="stable"] .ar-dialog-conclusion { border-color: #8d948e; background: rgba(141,148,142,.06); }
+    #airshot-rescue-dashboard-v2 .ar-target-dialog[data-level="unknown"] .ar-dialog-conclusion { border-color: var(--ar-amber); background: rgba(255,176,46,.06); }
+    #airshot-rescue-dashboard-v2 .ar-dialog-status { color: var(--ar-red); font-size: 9px; font-weight: 700; }
+    #airshot-rescue-dashboard-v2 .ar-target-dialog[data-level="stable"] .ar-dialog-status { color: #b8bdb9; }
+    #airshot-rescue-dashboard-v2 .ar-target-dialog[data-level="unknown"] .ar-dialog-status { color: var(--ar-amber); }
+    #airshot-rescue-dashboard-v2 .ar-dialog-conclusion strong { display: block; margin-top: 6px; font-size: 17px; font-weight: 600; line-height: 1.3; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-conclusion p { margin: 6px 0 0; color: #c5cbc7; font-size: 10px; line-height: 1.55; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 10px; border: 1px solid var(--ar-line); background: var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-dialog-vital { min-width: 0; padding: 9px; background: #111412; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-vital span { display: block; color: var(--ar-muted); font-size: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-vital strong { display: block; margin-top: 4px; font-size: 11px; font-weight: 600; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-row { display: grid; grid-template-columns: 74px 1fr; gap: 9px; padding: 10px 0; border-bottom: 1px solid var(--ar-line-soft); font-size: 10px; line-height: 1.5; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-row span { color: var(--ar-muted); }
+    #airshot-rescue-dashboard-v2 .ar-dialog-row strong { color: #d2d7d3; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-dialog-row.action strong { color: var(--ar-orange-soft); }
+    #airshot-rescue-dashboard-v2 .ar-supply-panel { margin-top: 12px; border: 1px solid var(--ar-line); background: #111412; }
+    #airshot-rescue-dashboard-v2 .ar-supply-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 9px; border-bottom: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-supply-head strong { color: var(--ar-orange-soft); font-size: 10px; font-weight: 600; }
+    #airshot-rescue-dashboard-v2 .ar-supply-head span { color: var(--ar-amber); font-size: 8px; }
+    #airshot-rescue-dashboard-v2 .ar-supply-reason { padding: 8px 9px 0; color: #c5cbc7; font-size: 9px; line-height: 1.5; }
+    #airshot-rescue-dashboard-v2 .ar-supply-list { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 8px 9px; background: var(--ar-line-soft); }
+    #airshot-rescue-dashboard-v2 .ar-supply-item { min-width: 0; padding: 8px; color: var(--ar-text); background: #171a18; font-size: 9px; line-height: 1.4; }
+    #airshot-rescue-dashboard-v2 .ar-supply-item strong { display: block; margin-bottom: 3px; color: var(--ar-green); font-size: 10px; font-weight: 600; }
+    #airshot-rescue-dashboard-v2 .ar-supply-boundary { padding: 7px 9px; border-top: 1px solid var(--ar-line); color: var(--ar-muted); font-size: 8px; line-height: 1.45; }
+    #airshot-rescue-dashboard-v2 .ar-reasoning { position: relative; z-index: 2; color: var(--ar-text); background: #101311; border-top: 1px solid var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-reasoning summary { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; list-style: none; font-size: 11px; }
+    #airshot-rescue-dashboard-v2 .ar-reasoning summary::-webkit-details-marker { display: none; }
+    #airshot-rescue-dashboard-v2 .ar-reasoning-title { color: var(--ar-text); font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-reasoning-score { color: var(--ar-muted); }
+    #airshot-rescue-dashboard-v2 .ar-reasoning-score strong { color: var(--ar-orange-soft); font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-reasoning-hint { margin-left: auto; color: var(--ar-muted); }
+    #airshot-rescue-dashboard-v2 .ar-reasoning-body { display: grid; grid-template-columns: repeat(5,1fr); gap: 1px; padding: 0 14px 12px; background: var(--ar-line); }
+    #airshot-rescue-dashboard-v2 .ar-reason { padding: 9px; background: #151816; font-size: 9px; line-height: 1.45; color: #c7cdc9; }
+    #airshot-rescue-dashboard-v2 .ar-reason strong { display: block; margin-bottom: 4px; color: var(--ar-orange-soft); font-size: 10px; font-weight: 500; }
+    #airshot-rescue-dashboard-v2 .ar-layout { display: none !important; }
+    @media (max-width: 1180px) {
+      #airshot-rescue-dashboard-v2 .ar-operational { grid-template-columns: minmax(0,1fr) minmax(380px,.7fr); }
+      #airshot-rescue-dashboard-v2 .ar-scene-column { grid-column: 1; }
+      #airshot-rescue-dashboard-v2 .ar-live-stream { grid-column: 1; height: 420px; }
+      #airshot-rescue-dashboard-v2 .ar-queue-column { grid-column: 2; grid-row: 1 / span 2; }
+    }
+    @media (max-width: 850px) {
+      #airshot-rescue-dashboard-v2 .ar-command { grid-template-columns: 1fr 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-situation { grid-column: 1 / -1; }
+      #airshot-rescue-dashboard-v2 .ar-operational { grid-template-columns: 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-scene-column { border-right: 0; border-bottom: 1px solid var(--ar-line); }
+      #airshot-rescue-dashboard-v2 .ar-scene-column,
+      #airshot-rescue-dashboard-v2 .ar-live-stream,
+      #airshot-rescue-dashboard-v2 .ar-queue-column { grid-column: 1; grid-row: auto; }
+      #airshot-rescue-dashboard-v2 .ar-live-stream { height: 480px; border-right: 0; border-bottom: 1px solid var(--ar-line); }
+      #airshot-rescue-dashboard-v2 .ar-dialog-body { grid-template-columns: 1fr; overflow-y: auto; }
+      #airshot-rescue-dashboard-v2 .ar-dialog-visual { border-right: 0; border-bottom: 1px solid var(--ar-line); }
+      #airshot-rescue-dashboard-v2 .ar-detail-image { min-height: 340px; }
+      #airshot-rescue-dashboard-v2 .ar-analysis { grid-template-columns: 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-right { grid-template-rows: auto 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-system { display: none; }
+      #airshot-rescue-dashboard-v2 .ar-header { grid-template-columns: 1fr auto; }
+    }
+    @media (max-width: 620px) {
+      #airshot-rescue-dashboard-v2 .ar-header { grid-template-columns: 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-situation { grid-template-columns: 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-weather { border-top: 1px solid var(--ar-line); border-right: 0; }
+      #airshot-rescue-dashboard-v2 .ar-layout { grid-template-columns: 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-left { border-right: 0; border-bottom: 1px solid var(--ar-line); }
+      #airshot-rescue-dashboard-v2 .ar-kpis { grid-template-columns: repeat(2,1fr); }
+      #airshot-rescue-dashboard-v2 .ar-facts { grid-template-columns: repeat(2,1fr); }
+      #airshot-rescue-dashboard-v2 .ar-target-detail { grid-template-columns: 138px 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-stream-summary { grid-template-columns: repeat(2,1fr); }
+      #airshot-rescue-dashboard-v2 .ar-command { grid-template-columns: 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-situation { grid-column: auto; }
+      #airshot-rescue-dashboard-v2 .ar-queue-card { grid-template-columns: 44px 80px 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-queue-thumb { width: 80px; }
+      #airshot-rescue-dashboard-v2 .ar-reasoning-body { grid-template-columns: 1fr; }
+      #airshot-rescue-dashboard-v2 .ar-target-dialog { width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
+      #airshot-rescue-dashboard-v2 .ar-dialog-title { font-size: 18px; }
+      #airshot-rescue-dashboard-v2 .ar-dialog-title span { display: block; margin: 5px 0 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #airshot-rescue-dashboard-v2 .ar-weather-drop,
+      #airshot-rescue-dashboard-v2 .ar-rain-field,
+      #airshot-rescue-dashboard-v2 .ar-scan,
+      #airshot-rescue-dashboard-v2 .ar-live-dot,
+      #airshot-rescue-dashboard-v2 .ar-map .map-route { animation: none; }
+    }
+  </style>
+
+  <section class="ar-shell" aria-label="AIRSHOT RESCUE 搜救指挥台第三版视觉稿">
+    <header class="ar-header">
+      <div class="ar-brand"><div class="ar-brand-mark">AR</div><div><div class="ar-brand-name">AIRSHOT RESCUE</div><div class="ar-brand-sub">EQ-0829 · B1 东区 · 地震废墟搜救</div></div></div>
+      <div class="ar-weather" aria-label="现场天气">
+        <div class="ar-weather-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 13a4 4 0 0 0-.7-7.94A5 5 0 0 0 5.2 6.9 3.5 3.5 0 0 0 6.5 13H16Z"></path></svg><i class="ar-weather-drop d1"></i><i class="ar-weather-drop d2"></i><i class="ar-weather-drop d3"></i></div>
+        <div><div class="ar-weather-main">暴雨预警</div><div class="ar-weather-sub">降水持续增强</div></div>
+        <div class="ar-weather-data"><span>降雨强度</span><strong>24 mm/h</strong></div><div class="ar-weather-data"><span>风向 / 风速</span><strong>东风 5.6 m/s</strong></div>
+      </div>
+      <div class="ar-system"><div><strong>ONLINE</strong><span>设备 4/4</span></div><div><strong>38 ms</strong><span>回传延迟</span></div><div><strong>76%</strong><span>机器狗电量</span></div></div>
+    </header>
+
+    <section class="ar-command" aria-label="当前态势与立即行动">
+      <div class="ar-situation">
+        <div><div class="ar-command-label">当前态势 · 20:18</div><div class="ar-situation-title">3 人受困 · 1 人立即救援 · 1 人状态未知</div><div class="ar-situation-copy">P-03 已确认高危；P-01 状态稳定；P-02 证据不足，需继续补充侦察。</div></div>
+        <div class="ar-situation-stats" aria-label="现场关键统计"><div class="ar-situation-stat"><strong>3</strong><span>发现人员</span></div><div class="ar-situation-stat"><strong class="critical">1</strong><span>立即救援</span></div><div class="ar-situation-stat"><strong class="warning">1</strong><span>状态未知</span></div></div>
+      </div>
+      <div class="ar-action rescue">
+        <div class="ar-action-head"><div class="ar-action-kicker">救援组 · 当前任务 → P-03</div><span class="ar-parallel-label">并行任务</span></div>
+        <div class="ar-action-title" data-rescue-title>立即结构支撑，建立撤离通道</div>
+        <div class="ar-action-copy" data-rescue-copy>先固定上方梁体，再确认腿部受压点。</div>
+        <div class="ar-plan-options" aria-label="调整救援方案"><button class="ar-plan-option" type="button" data-plan="support" aria-pressed="true">结构支撑优先</button><button class="ar-plan-option" type="button" data-plan="medical" aria-pressed="false">医疗接触优先</button></div>
+        <div class="ar-action-controls"><button class="ar-command-button" type="button" data-command="confirm-rescue">确认执行</button><button class="ar-command-button secondary" type="button" data-command="adjust-rescue" aria-expanded="false">调整方案</button><div class="ar-action-status" data-task-status="rescue">AI 建议 · 等待指挥确认</div></div>
+      </div>
+      <div class="ar-action scout">
+        <div class="ar-action-head"><div class="ar-action-kicker">机器狗 · 当前任务 → P-02</div><span class="ar-parallel-label">并行任务</span></div>
+        <div class="ar-action-title">从西侧绕行，获取第二视角</div>
+        <div class="ar-action-copy">确认意识响应、遮挡关系与可进入路线。</div>
+        <div class="ar-action-controls"><button class="ar-command-button" type="button" data-command="dispatch-scout">下发任务</button><button class="ar-command-button secondary" type="button" data-command="show-route" aria-pressed="false">查看路线</button><div class="ar-action-status" data-task-status="scout">AI 建议 · 等待任务下发</div></div>
+      </div>
+    </section>
+
+    <main class="ar-operational" aria-label="搜救现场证据与任务队列">
+      <div class="ar-scene-column">
+        <section class="ar-live-panel operational" aria-label="实时现场理解">
+          <div class="ar-panel-head"><div class="ar-panel-title">LIVE / 360° 现场理解</div><span>REAL SCENE INPUT · LIVE</span></div>
+          <div class="ar-live-feed" data-observation="p3">
+            <video id="ar-live-video" class="ar-live-video" src="assets/rescue/live-rescue.mp4" poster="assets/rescue/p03.png" autoplay loop muted playsinline preload="auto" aria-label="机器狗360度实时搜救视频"></video>
+            <div class="ar-current-observation" data-live-role="summary">当前观察：P-03 · 高危 · 救援优先级 #1</div>
+            <div class="ar-understanding person" data-live-role="person">意识清醒<br>抬手回应</div>
+            <div class="ar-understanding pressure" data-live-role="condition">腿部受压</div>
+            <div class="ar-understanding structure" data-live-role="environment">上方松动梁体</div>
+            <svg class="ar-spatial-overlay" data-live-role="spatial" viewBox="0 0 100 56" preserveAspectRatio="none" aria-label="P-03危险构件与安全撤离路线">
+              <defs><marker id="ar-evac-arrow" markerWidth="4" markerHeight="4" refX="3.2" refY="2" orient="auto"><path d="M0 0L4 2L0 4Z" fill="var(--ar-orange)"></path></marker></defs>
+              <path class="ar-hazard-outline" data-live-role="hazard" d="M49 11L76 7L84 24L66 30L51 24Z"></path>
+              <path class="ar-evacuation-route" data-live-role="route" d="M44 42C55 46 66 44 76 39S88 32 95 30" marker-end="url(#ar-evac-arrow)"></path>
+              <text class="ar-route-label" data-live-role="route-label" x="72" y="48">东侧撤离路径</text>
+            </svg>
+          </div>
+        </section>
+        <section class="ar-map-panel" aria-label="SLAM战术地图">
+          <div class="ar-panel-head"><div class="ar-panel-title">SLAM 战术地图 / 人员与路径</div><span>B1 东区 · 网格 2m · 北向上</span></div>
+          <div class="ar-map-wrap">
+            <svg class="ar-map" viewBox="0 0 520 180" role="img" aria-label="B1东区SLAM地图，标注三名受困人员、机器狗路径、积水和坍塌区">
+              <defs><pattern id="ar-operational-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path class="map-grid" d="M20 0H0V20"></path></pattern></defs><rect width="520" height="180" fill="url(#ar-operational-grid)"></rect>
+              <rect class="map-room" x="24" y="22" width="105" height="50"></rect><rect class="map-room" x="141" y="22" width="101" height="50"></rect><rect class="map-room" x="254" y="22" width="115" height="50"></rect><rect class="map-room" x="381" y="22" width="115" height="50"></rect><rect class="map-room" x="24" y="108" width="125" height="47"></rect><rect class="map-room" x="161" y="108" width="102" height="47"></rect><rect class="map-room" x="275" y="108" width="105" height="47"></rect><rect class="map-room" x="392" y="108" width="104" height="47"></rect>
+              <path class="map-wall" d="M16 16H504V162H16ZM16 82H190V98H504M135 16V72M248 16V72M375 16V72M155 108V162M269 108V162M386 108V162"></path>
+              <polygon class="map-danger" points="374,17 503,17 503,76 455,66 418,48"></polygon><path class="map-water" d="M17 130C54 112 91 146 150 129V159H17Z"></path>
+              <polyline class="map-route" points="30,91 92,91 152,91 221,90 286,89 350,88 414,78"></polyline><polygon points="404,73 420,78 408,88" fill="var(--ar-orange)"></polygon>
+              <circle class="map-target" cx="438" cy="47" r="10" fill="var(--ar-red)"></circle><text x="438" y="51" text-anchor="middle" fill="#080c0b" font-size="9">03</text><circle class="map-target scouting" cx="420" cy="132" r="10" fill="var(--ar-amber)"></circle><text x="420" y="136" text-anchor="middle" fill="#080c0b" font-size="9">02</text><circle class="map-target" cx="82" cy="47" r="10" fill="#9da19d"></circle><text x="82" y="51" text-anchor="middle" fill="#080c0b" font-size="9">01</text>
+              <text class="map-label" x="34" y="36">设备间 · P-01</text><text class="map-label" x="151" y="36">储物区</text><text class="map-label" x="264" y="36">东侧走廊</text><text class="map-label" x="391" y="36">坍塌区 · P-03</text><text class="map-label" x="34" y="123">积水区</text><text class="map-label" x="171" y="123">楼梯间</text><text class="map-label" x="285" y="123">西侧走廊</text><text class="map-label" x="402" y="123">P-02</text><text class="map-small" x="26" y="88">入口</text><text class="map-small" x="430" y="87">机器狗 →</text>
+            </svg>
+          </div>
+        </section>
+      </div>
+
+      <section class="ar-live-stream" aria-label="多模态实时理解流">
+        <div class="ar-panel-head"><div class="ar-panel-title">多模态实时理解流</div><span>VISION · AUDIO · POSE · RISK</span></div>
+        <div class="ar-understanding-log" id="ar-understanding-stream" aria-live="polite">
+          <div class="ar-stream-log show"><span class="ar-stream-time">20:18:30</span><span class="ar-stream-type">SYSTEM</span><span class="ar-stream-copy">360°视频与现场音频已接入，开始持续理解。</span></div>
+          <div class="ar-decision-log show"><div class="ar-decision-label">RESCUE DECISION · 等待分析</div><div class="ar-decision-title">正在建立现场态势</div><div class="ar-decision-score">多模态证据持续进入</div></div>
+        </div>
+      </section>
+
+      <aside class="ar-queue-column" aria-label="救援优先级队列与主要风险">
+        <div class="ar-panel-head"><div class="ar-panel-title">救援目标队列</div><span>按人员处置优先级排序</span></div>
+        <div class="ar-queue-list">
+          <article class="ar-queue-card critical"><div class="ar-queue-rank"><div><strong>1</strong>优先</div></div><img class="ar-queue-thumb" src="assets/rescue/p03.png" alt="P-03现场缩略图"><div class="ar-queue-content"><div class="ar-queue-top"><div class="ar-queue-id">P-03 · 东侧走廊</div><div class="ar-queue-state">立即处置</div></div><div class="ar-queue-reason">意识清醒 · 腿部受压 · 上方构件松动</div><div class="ar-queue-action">救援组：结构支撑 → 建立撤离通道</div><button class="ar-queue-view" type="button" data-target-detail="p3">点击查看</button></div></article>
+          <article class="ar-queue-card"><div class="ar-queue-rank"><div><strong>2</strong>优先</div></div><img class="ar-queue-thumb" src="assets/rescue/p01.png" alt="P-01现场缩略图"><div class="ar-queue-content"><div class="ar-queue-top"><div class="ar-queue-id">P-01 · 北侧设备间</div><div class="ar-queue-state">可延后</div></div><div class="ar-queue-reason">意识清醒 · 可自主活动 · 左臂受限</div><div class="ar-queue-action">救援组：清理出口 → 引导撤离</div><button class="ar-queue-view" type="button" data-target-detail="p1">点击查看</button></div></article>
+          <article class="ar-queue-card scouting"><div class="ar-queue-rank"><div><strong>?</strong>确认</div></div><img class="ar-queue-thumb" src="assets/rescue/p02.png" alt="P-02现场缩略图"><div class="ar-queue-content"><div class="ar-queue-top"><div class="ar-queue-id">P-02 · 西侧走廊</div><div class="ar-queue-state">状态未知</div></div><div class="ar-queue-reason">疑似生命迹象 · 大型梁体遮挡 · 无语音回应</div><div class="ar-queue-action">机器狗：西侧绕行 → 获取第二视角</div><button class="ar-queue-view" type="button" data-target-detail="p2">点击查看</button></div></article>
+        </div>
+        <section class="ar-major-risks" aria-label="主要环境风险">
+          <div class="ar-risk-title">主要环境风险 / OPERATIONAL RISK</div>
+          <div class="ar-risk-head"><span>风险</span><span>影响</span><span>当前措施</span></div>
+          <div class="ar-risk-row"><span class="ar-risk-subject"><b class="ar-risk-level high">高 ·</b> P-03 上方构件松动</span><span class="ar-risk-impact">救援人员进入危险</span><span class="ar-risk-measure">先结构支撑</span></div>
+          <div class="ar-risk-row"><span class="ar-risk-subject"><b class="ar-risk-level high">高 ·</b> E-03 二次坍塌</span><span class="ar-risk-impact">P-03 撤离路线受威胁</span><span class="ar-risk-measure">限制进入人数</span></div>
+          <div class="ar-risk-row"><span class="ar-risk-subject"><b class="ar-risk-level medium">中 ·</b> P-02 梁体遮挡</span><span class="ar-risk-impact">无法判断人员状态</span><span class="ar-risk-measure">机器狗绕行</span></div>
+          <div class="ar-risk-row"><span class="ar-risk-subject"><b class="ar-risk-level low">低 ·</b> 西侧地面积水</span><span class="ar-risk-impact">通行速度下降</span><span class="ar-risk-measure">降低行进速度</span></div>
+        </section>
+      </aside>
+    </main>
+
+    <dialog class="ar-target-dialog" id="ar-target-dialog" data-level="critical" aria-labelledby="ar-dialog-title">
+      <div class="ar-dialog-head">
+        <div>
+          <div class="ar-dialog-kicker">360° EVIDENCE ANALYSIS · 目标详情</div>
+          <div class="ar-dialog-title" id="ar-dialog-title"><strong data-detail="title">P-03 · 东侧走廊</strong><span data-detail="location-short">B1 东区</span></div>
+        </div>
+        <button class="ar-dialog-close" type="button" data-dialog-close aria-label="关闭目标详情">×</button>
+      </div>
+      <div class="ar-dialog-body">
+        <div class="ar-dialog-visual">
+          <div class="ar-detail-image">
+            <img data-detail="image" src="assets/rescue/p03.png" alt="P-03 搜救现场详细分析图">
+            <div class="ar-detail-annotation a1" data-detail-annotation="0">意识清醒 · 可回应呼叫</div>
+            <div class="ar-detail-annotation a2" data-detail-annotation="1">腿部受压 · 手部可活动</div>
+            <div class="ar-detail-annotation a3" data-detail-annotation="2">上方结构松动</div>
+            <div class="ar-detail-annotation a4" data-detail-annotation="3">安全撤离方向 →</div>
+          </div>
+        </div>
+        <div class="ar-dialog-info">
+          <div class="ar-dialog-conclusion">
+            <div class="ar-dialog-status" data-detail="status">优先级 #1 · 立即救援</div>
+            <strong data-detail="conclusion">结构支撑组立即介入</strong>
+            <p data-detail="summary">目标意识清醒但腿部疑似受压，上方构件松动。先支撑，再确认受压点，最后扩宽转移路径。</p>
+          </div>
+          <div class="ar-dialog-vitals">
+            <div class="ar-dialog-vital"><span>意识响应</span><strong data-detail="consciousness">清醒</strong></div>
+            <div class="ar-dialog-vital"><span>自主活动</span><strong data-detail="mobility">手部可动</strong></div>
+            <div class="ar-dialog-vital"><span>受困状态</span><strong data-detail="trapped">腿部受压</strong></div>
+            <div class="ar-dialog-vital"><span>环境风险</span><strong data-detail="risk">高 · 构件松动</strong></div>
+          </div>
+          <section class="ar-supply-panel" aria-label="背负式维生补给建议">
+            <div class="ar-supply-head"><strong>背负式维生补给</strong><span>需救援人员确认</span></div>
+            <div class="ar-supply-reason" data-detail="supply-reason">目标意识清醒并可沟通；暴雨环境存在失温风险，补给优先用于保温与持续联络。</div>
+            <div class="ar-supply-list">
+              <div class="ar-supply-item" data-supply-item="0"><strong>应急保温毯</strong>可立即提供 · 防止持续失温</div>
+              <div class="ar-supply-item" data-supply-item="1"><strong>防雨罩</strong>可立即提供 · 隔离雨水</div>
+              <div class="ar-supply-item" data-supply-item="2"><strong>补水包</strong>医疗端确认吞咽安全后释放</div>
+              <div class="ar-supply-item" data-supply-item="3"><strong>双向语音灯</strong>保持联络并标记位置</div>
+            </div>
+            <div class="ar-supply-boundary" data-detail="supply-boundary">系统只推荐物资，不自动给药或投喂；饮水、口服补液与伤口处理须经救援人员确认。</div>
+          </section>
+          <div class="ar-dialog-row"><span>人员特征</span><strong data-detail="person">女性约 25-35 岁，灰色上衣，黑色长发</strong></div>
+          <div class="ar-dialog-row"><span>定位回传</span><strong data-detail="location">B1 东侧走廊 · X12.4 / Y8.7 · 距入口 36.4m</strong></div>
+          <div class="ar-dialog-row"><span>搜救困难</span><strong data-detail="difficulty">0.7m 单人通道、积水湿滑、担架无法直接进入</strong></div>
+          <div class="ar-dialog-row action"><span>建议行动</span><strong data-detail="action">固定上方梁体，确认腿部受压点，扩宽东侧撤离通道</strong></div>
+        </div>
+      </div>
+    </dialog>
+
+    <details class="ar-reasoning">
+      <summary><span class="ar-reasoning-title">AI 判断依据</span><span class="ar-reasoning-score">VISION <strong>0.93</strong></span><span class="ar-reasoning-score">AUDIO <strong>0.86</strong></span><span class="ar-reasoning-score">POSE <strong>0.91</strong></span><span class="ar-reasoning-score">RISK <strong>HIGH</strong></span><span class="ar-reasoning-hint">展开完整分析记录 ↓</span></summary>
+      <div class="ar-reasoning-body"><div class="ar-reason"><strong>VISION · 20:18:31</strong>360°画面中识别到 3 个人体目标，P-03 受压点与上方梁体同时可见。</div><div class="ar-reason"><strong>AUDIO · 20:18:33</strong>暴雨噪声中分离出咳嗽与呼救，声源方向与 P-03 一致。</div><div class="ar-reason"><strong>POSE · 20:18:36</strong>P-03 抬头并持续抬手，判定存在明确意识响应与自主活动。</div><div class="ar-reason"><strong>RISK · 20:18:39</strong>上方构件松动，通道宽约 0.7m；建议先支撑后转移。</div><div class="ar-reason"><strong>REPORT · 20:18:42</strong>已回传救援任务 P-03 与侦察任务 P-02，等待指挥确认。</div></div>
+    </details>
+
+    <div class="ar-layout">
+      <div class="ar-left">
+        <section class="ar-live-panel" aria-label="机器狗实时视频">
+          <div class="ar-panel-head"><div class="ar-panel-title">实时视频 / 360°全景理解</div><span>CAM-01 · INSTA360 X4 · 20:18:42</span></div>
+          <div class="ar-live-feed">
+            <div class="ar-rain-field"></div><div class="ar-hud-grid"></div><div class="ar-scan"></div>
+            <div class="ar-live-label"><span class="ar-live-dot"></span>LIVE · EAST CORRIDOR</div>
+            <div class="ar-detection"><div class="ar-person-head"></div><div class="ar-person-body"></div></div>
+            <div class="ar-live-meta">360° PANORAMA · 低照度增强<br>B1 东侧走廊 · 朝向 78° · 距入口 36.4m<br>RAIN FILTER ACTIVE</div>
+          </div>
+        </section>
+        <section class="ar-stream" aria-label="多模态理解流">
+          <div class="ar-panel-head"><div class="ar-panel-title">多模态理解流</div><span>VISION · AUDIO · POSE · SLAM · ACTIVE</span></div>
+          <div class="ar-stream-body">
+            <div class="ar-log"><span class="ar-log-time">20:18:31</span><span class="ar-log-type">VISION</span><span class="ar-log-copy">右后方 2 点方向检测到人体轮廓，已从 360°画面自动重构目标视角。</span><span class="ar-log-score">0.93</span></div>
+            <div class="ar-log"><span class="ar-log-time">20:18:33</span><span class="ar-log-type audio">AUDIO</span><span class="ar-log-copy">暴雨噪声中分离出咳嗽与微弱呼救，声源方向与视觉目标一致。</span><span class="ar-log-score">0.86</span></div>
+            <div class="ar-log"><span class="ar-log-time">20:18:36</span><span class="ar-log-type">POSE</span><span class="ar-log-copy">目标手部连续活动；响应呼叫后出现抬头和明确语音回应。</span><span class="ar-log-score">0.91</span></div>
+            <div class="ar-log"><span class="ar-log-time">20:18:39</span><span class="ar-log-type risk">RISK</span><span class="ar-log-copy">腿部疑似受压，上方构件松动；通道宽约 0.7m。</span><span class="ar-log-score">HIGH</span></div>
+            <div class="ar-log"><span class="ar-log-time">20:18:42</span><span class="ar-log-type">REPORT</span><span class="ar-log-copy">生成救援优先级 1 目标卡，建议结构支撑组立即介入。</span><span class="ar-log-score">SENT</span></div>
+            <div class="ar-stream-summary" aria-label="实时识别状态">
+              <div class="ar-stream-stat"><span>视觉目标</span><strong>3 人</strong></div>
+              <div class="ar-stream-stat"><span>音频响应</span><strong>2 路</strong></div>
+              <div class="ar-stream-stat"><span>SLAM 轨迹</span><strong>36.4 m</strong></div>
+              <div class="ar-stream-stat"><span>分析状态</span><strong class="live">持续运行</strong></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="ar-right">
+        <section class="ar-overview" aria-label="现场总览与战术地图">
+          <div class="ar-panel-head"><div class="ar-panel-title">现场态势总览</div><span>最后更新 2 秒前</span></div>
+          <div class="ar-overview-body">
+            <div class="ar-kpis">
+              <div class="ar-kpi primary"><div class="ar-kpi-label">发现人员</div><div class="ar-kpi-value">3<span class="ar-kpi-unit">人</span></div></div>
+              <div class="ar-kpi"><div class="ar-kpi-label">优先级 1</div><div class="ar-kpi-value red">1<span class="ar-kpi-unit">人</span></div></div>
+              <div class="ar-kpi"><div class="ar-kpi-label">明确响应</div><div class="ar-kpi-value green">2<span class="ar-kpi-unit">人</span></div></div>
+              <div class="ar-kpi"><div class="ar-kpi-label">高风险区</div><div class="ar-kpi-value red">2<span class="ar-kpi-unit">处</span></div></div>
+            </div>
+            <div class="ar-analysis">
+              <div><div class="ar-figure-head"><strong>B1 东区 · SLAM 战术地图</strong><span>网格 2m · 北向上</span></div>
+                <svg class="ar-map" viewBox="0 0 260 180" role="img" aria-label="B1东区室内SLAM地图，标注机器狗路线、三名受困人员、积水和坍塌危险区域">
+                  <defs><pattern id="ar-map-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path class="map-grid" d="M20 0H0V20"></path></pattern></defs><rect width="260" height="180" fill="url(#ar-map-grid)"></rect>
+                  <rect class="map-room" x="20" y="23" width="62" height="49"></rect><rect class="map-room" x="92" y="23" width="55" height="49"></rect><rect class="map-room" x="157" y="23" width="80" height="49"></rect><rect class="map-room" x="20" y="108" width="73" height="47"></rect><rect class="map-room" x="103" y="108" width="57" height="47"></rect><rect class="map-room" x="170" y="108" width="67" height="47"></rect>
+                  <path class="map-wall" d="M15 17H243V161H15ZM15 82H100V98H243M86 17V72M151 17V72M98 108V161M164 108V161"></path>
+                  <polygon class="map-danger" points="167,18 239,18 239,75 205,67 181,53"></polygon><path class="map-water" d="M17 130C42 116 61 146 95 131V158H17Z"></path>
+                  <polyline class="map-route" points="26,93 59,92 90,91 117,91 148,89 173,88 196,77"></polyline><polygon points="185,74 199,78 189,86" fill="var(--ar-orange)"></polygon>
+                  <circle class="map-target" cx="205" cy="48" r="8" fill="var(--ar-red)"></circle><text x="205" y="51" text-anchor="middle" fill="#080c0b" font-size="7">3</text><circle class="map-target" cx="194" cy="133" r="8" fill="var(--ar-orange)"></circle><text x="194" y="136" text-anchor="middle" fill="#080c0b" font-size="7">2</text><circle class="map-target" cx="61" cy="47" r="8" fill="var(--ar-green)"></circle><text x="61" y="50" text-anchor="middle" fill="#080c0b" font-size="7">1</text>
+                  <text class="map-label" x="29" y="35">设备间 E-01</text><text class="map-label" x="99" y="35">储物区 E-02</text><text class="map-label" x="165" y="35">坍塌区 E-03</text><text class="map-label" x="28" y="122">积水区</text><text class="map-label" x="112" y="122">楼梯间</text><text class="map-label" x="179" y="122">管井区</text><text class="map-small" x="24" y="91">入口</text><text class="map-small" x="202" y="88">机器狗</text>
+                  <path d="M244 18V39M240 23L244 17L248 23" fill="none" stroke="var(--ar-text)" stroke-width="1"></path><text class="map-small" x="244" y="48" text-anchor="middle">N</text><line x1="198" y1="166" x2="238" y2="166" stroke="var(--ar-text)" stroke-width="1"></line><line x1="198" y1="163" x2="198" y2="169" stroke="var(--ar-text)"></line><line x1="238" y1="163" x2="238" y2="169" stroke="var(--ar-text)"></line><text class="map-small" x="218" y="176" text-anchor="middle">5m</text>
+                </svg>
+              </div>
+              <div><div class="ar-figure-head"><strong>环境风险雷达</strong><span>0–100</span></div>
+                <svg class="ar-radar" viewBox="0 0 150 125" role="img" aria-label="环境风险雷达图，构件松动和二次坍塌为高风险">
+                  <polygon class="radar-grid" points="75,18 116,48 100,97 50,97 34,48"></polygon><polygon class="radar-grid" points="75,35 96,51 88,76 62,76 54,51"></polygon><line class="radar-axis" x1="75" y1="63" x2="75" y2="18"></line><line class="radar-axis" x1="75" y1="63" x2="116" y2="48"></line><line class="radar-axis" x1="75" y1="63" x2="100" y2="97"></line><line class="radar-axis" x1="75" y1="63" x2="50" y2="97"></line><line class="radar-axis" x1="75" y1="63" x2="34" y2="48"></line><polygon class="radar-area" points="75,25 105,52 88,81 60,84 43,50"></polygon><circle class="radar-node" cx="75" cy="25" r="2"></circle><circle class="radar-node" cx="105" cy="52" r="2"></circle><circle class="radar-node" cx="88" cy="81" r="2"></circle><circle class="radar-node" cx="60" cy="84" r="2"></circle><circle class="radar-node" cx="43" cy="50" r="2"></circle>
+                  <text class="radar-label" x="75" y="10" text-anchor="middle">构件 78</text><text class="radar-label" x="121" y="47">堵塞 64</text><text class="radar-label" x="104" y="108">能见 46</text><text class="radar-label" x="46" y="108" text-anchor="end">积水 31</text><text class="radar-label" x="29" y="47" text-anchor="end">坍塌 72</text>
+                </svg>
+                <div class="ar-risk-grid"><span data-level="high">搜救难度 <strong>高</strong></span><span data-level="low">可通行度 <strong>42%</strong></span><span data-level="medium">降雨影响 <strong>中</strong></span><span data-level="high">路线状态 <strong>受阻</strong></span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ar-targets" aria-label="结构化搜救目标卡">
+          <div class="ar-panel-head"><div class="ar-panel-title">搜救目标卡 / AI 结论</div><span>按救援优先级排序</span></div>
+          <div class="ar-target-tabs" role="group" aria-label="选择受困人员"><button class="ar-target-tab" type="button" data-target="p3" aria-pressed="true">P-03 · 优先级 1</button><button class="ar-target-tab" type="button" data-target="p1" aria-pressed="false">P-01 · 优先级 2</button><button class="ar-target-tab" type="button" data-target="p2" aria-pressed="false">P-02 · 待确认</button></div>
+          <div class="ar-target-detail">
+            <div class="ar-priority" data-level="critical"><div class="ar-priority-head"><span>救援优先级</span><strong id="ar-priority-code">1</strong><span id="ar-priority-label">立即救援</span></div><div class="ar-target-image"><img class="ar-target-photo" id="ar-target-photo" src="assets/rescue/p03.png" alt="P-03女性受困者位于积水废墟中，上方存在松动梁体"><div class="ar-image-overlay"><strong id="ar-image-title">P-03 · 东侧走廊</strong><span id="ar-image-brief">受困者、受压点与上方松动构件</span></div></div></div>
+            <div class="ar-target-main">
+              <div class="ar-conclusion"><div class="ar-conclusion-top"><div class="ar-conclusion-label" id="ar-conclusion-label">AI 核心结论 · P-03</div><div class="ar-difficulty-badge" id="ar-difficulty-badge" data-level="critical">搜救难度 · 高</div></div><div class="ar-conclusion-title" id="ar-conclusion-title">结构支撑组立即介入</div><div class="ar-conclusion-copy" id="ar-conclusion-copy">目标意识清醒但腿部疑似受压，上方构件松动。先支撑、再确认受压点，最后扩宽转移路径。</div></div>
+              <div class="ar-facts"><div class="ar-fact"><span>意识响应</span><strong class="good" id="ar-conscious">清醒</strong></div><div class="ar-fact"><span>自主活动</span><strong class="good" id="ar-motion">手部可动</strong></div><div class="ar-fact"><span>受困状态</span><strong class="bad" id="ar-trapped">腿部受压</strong></div><div class="ar-fact"><span>环境风险</span><strong class="bad" id="ar-risk">高</strong></div></div>
+              <div class="ar-detail-row"><span class="ar-detail-label">人员特征</span><span class="ar-detail-value" id="ar-person">女性约 25–35 岁，灰色上衣，黑色长发</span></div><div class="ar-detail-row"><span class="ar-detail-label">搜救困难</span><span class="ar-detail-value" id="ar-difficulty">0.7m 单人通道、积水湿滑、担架无法直接进入</span></div><div class="ar-detail-row"><span class="ar-detail-label">定位回传</span><span class="ar-detail-value location" id="ar-location">B1 东侧走廊 · X12.4 / Y8.7 · 距入口 36.4m</span></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const root = document.getElementById('airshot-rescue-dashboard-v2');
+      const liveVideo = root.querySelector('#ar-live-video');
+      const liveFeed = liveVideo.closest('.ar-live-feed');
+      const liveSummary = liveFeed.querySelector('[data-live-role="summary"]');
+      const liveLabels = {
+        person: liveFeed.querySelector('[data-live-role="person"]'),
+        condition: liveFeed.querySelector('[data-live-role="condition"]'),
+        environment: liveFeed.querySelector('[data-live-role="environment"]')
+      };
+      const liveSpatial = liveFeed.querySelector('[data-live-role="spatial"]');
+      const liveHazard = liveFeed.querySelector('[data-live-role="hazard"]');
+      const liveRoute = liveFeed.querySelector('[data-live-role="route"]');
+      const liveRouteLabel = liveFeed.querySelector('[data-live-role="route-label"]');
+
+      const liveObservationScenes = {
+        p3: {
+          summary: '当前观察：P-03 · 高优先级 · 立即救援',
+          person: '意识清醒<br>抬手回应',
+          condition: '腿部受压',
+          environment: '上方松动梁体',
+          spatialLabel: 'P-03 受压点、松动构件与东侧撤离路径',
+          hazard: 'M49 11L76 7L84 24L66 30L51 24Z',
+          route: 'M44 42C55 46 66 44 76 39S88 32 95 30',
+          routeLabel: '东侧撤离路径',
+          routeLabelX: '72',
+          routeLabelY: '48'
+        },
+        p1: {
+          summary: '当前观察：P-01 · 中优先级 · 可延后处置',
+          person: '意识清醒<br>可自主活动',
+          condition: '左臂受限',
+          environment: '北侧出口部分堵塞',
+          spatialLabel: 'P-01 受限手臂与可清理北侧出口',
+          hazard: 'M12 6L53 6L54 31L38 38L16 32Z',
+          route: 'M52 44C47 38 42 32 37 28S29 20 21 14',
+          routeLabel: '北侧出口可清理',
+          routeLabelX: '8',
+          routeLabelY: '49'
+        },
+        transition: {
+          summary: '场景切换 · 正在重新识别目标',
+          person: '',
+          condition: '',
+          environment: '',
+          spatialLabel: '场景切换，正在重新识别目标',
+          hazard: '',
+          route: '',
+          routeLabel: '',
+          routeLabelX: '72',
+          routeLabelY: '48'
+        },
+        p2: {
+          summary: '当前观察：P-02 · 待确认 · 需要第二视角',
+          person: '疑似生命迹象<br>手部间歇活动',
+          condition: '大型梁体遮挡',
+          environment: '意识状态待确认',
+          spatialLabel: 'P-02 遮挡关系与机器狗侧向绕行空间',
+          hazard: 'M37 12L83 6L92 35L54 45L31 29Z',
+          route: 'M18 49C30 46 43 43 55 40S73 34 91 26',
+          routeLabel: '机器狗侧向绕行',
+          routeLabelX: '67',
+          routeLabelY: '50'
+        }
+      };
+
+      function getLiveObservationKey(time) {
+        if (time < 2) return 'p3';
+        if (time < 4) return 'p1';
+        if (time < 4.85) return 'transition';
+        return 'p2';
+      }
+
+      let activeLiveObservation = '';
+
+      function updateLiveObservation(time) {
+        const key = getLiveObservationKey(time);
+        if (key === activeLiveObservation) return;
+        activeLiveObservation = key;
+        const scene = liveObservationScenes[key];
+        liveFeed.dataset.observation = key;
+        liveSummary.textContent = scene.summary;
+        liveLabels.person.innerHTML = scene.person;
+        liveLabels.condition.textContent = scene.condition;
+        liveLabels.environment.textContent = scene.environment;
+        liveSpatial.setAttribute('aria-label', scene.spatialLabel);
+        liveHazard.setAttribute('d', scene.hazard);
+        liveRoute.setAttribute('d', scene.route);
+        liveRouteLabel.textContent = scene.routeLabel;
+        liveRouteLabel.setAttribute('x', scene.routeLabelX);
+        liveRouteLabel.setAttribute('y', scene.routeLabelY);
+      }
+
+      updateLiveObservation(0);
+      liveVideo.addEventListener('seeked', () => updateLiveObservation(liveVideo.currentTime));
+      if (typeof liveVideo.requestVideoFrameCallback === 'function') {
+        const syncLiveFrame = (_now, metadata) => {
+          updateLiveObservation(metadata.mediaTime);
+          liveVideo.requestVideoFrameCallback(syncLiveFrame);
+        };
+        liveVideo.requestVideoFrameCallback(syncLiveFrame);
+      } else {
+        liveVideo.addEventListener('timeupdate', () => updateLiveObservation(liveVideo.currentTime));
+      }
+
+      const rescueAction = root.querySelector('.ar-action.rescue');
+      const rescueTitle = root.querySelector('[data-rescue-title]');
+      const rescueCopy = root.querySelector('[data-rescue-copy]');
+      const rescueStatus = root.querySelector('[data-task-status="rescue"]');
+      const scoutStatus = root.querySelector('[data-task-status="scout"]');
+
+      root.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => {
+        const command = button.dataset.command;
+        if (command === 'confirm-rescue') {
+          rescueAction.classList.remove('is-adjusting');
+          rescueStatus.textContent = '已确认 · 救援组执行中';
+          button.textContent = '已确认';
+          button.disabled = true;
+          root.querySelector('[data-command="adjust-rescue"]').setAttribute('aria-expanded', 'false');
+          appendUnderstandingEvent({time:'20:18:49',type:'COMMAND',copy:'指挥员已确认 P-03 救援方案，结构支撑组开始执行。'});
+        }
+        if (command === 'adjust-rescue') {
+          const expanded = rescueAction.classList.toggle('is-adjusting');
+          button.setAttribute('aria-expanded', String(expanded));
+          button.textContent = expanded ? '收起方案' : '调整方案';
+          rescueStatus.textContent = expanded ? '人工调整模式 · 选择任务策略' : 'AI 建议 · 等待指挥确认';
+        }
+        if (command === 'dispatch-scout') {
+          scoutStatus.textContent = '已下发 · 机器狗正从西侧绕行';
+          button.textContent = '已下发';
+          button.disabled = true;
+          appendUnderstandingEvent({time:'20:18:51',type:'COMMAND',copy:'P-02 补充侦察任务已下发，机器狗切换至西侧绕行路线。'});
+        }
+        if (command === 'show-route') {
+          const active = root.classList.toggle('route-focus');
+          button.setAttribute('aria-pressed', String(active));
+          button.textContent = active ? '收起路线' : '查看路线';
+        }
+      }));
+
+      root.querySelectorAll('[data-plan]').forEach(button => button.addEventListener('click', () => {
+        root.querySelectorAll('[data-plan]').forEach(option => option.setAttribute('aria-pressed', String(option === button)));
+        const medicalFirst = button.dataset.plan === 'medical';
+        rescueTitle.textContent = medicalFirst ? '医疗组先建立接触，结构组同步支撑' : '立即结构支撑，建立撤离通道';
+        rescueCopy.textContent = medicalFirst ? '保持语音沟通并评估伤情，同时固定上方梁体。' : '先固定上方梁体，再确认腿部受压点。';
+        rescueStatus.textContent = '方案已调整 · 等待指挥确认';
+      }));
+
+      const rescueTargets = {
+        p3: {
+          level: 'critical',
+          title: 'P-03 · 东侧走廊',
+          locationShort: 'B1 东区',
+          image: 'assets/rescue/p03.png',
+          imageAlt: 'P-03 女性受困者位于积水废墟中，上方存在松动梁体',
+          status: '优先级 #1 · 立即救援',
+          conclusion: '结构支撑组立即介入',
+          summary: '目标意识清醒但腿部疑似受压，上方构件松动。先支撑，再确认受压点，最后扩宽转移路径。',
+          consciousness: '清醒 · 可回应呼叫',
+          mobility: '手部可动',
+          trapped: '腿部受压',
+          risk: '高 · 上方构件松动',
+          person: '女性约 25-35 岁，灰色上衣，黑色长发',
+          location: 'B1 东侧走廊 · X12.4 / Y8.7 · 距入口 36.4m',
+          difficulty: '0.7m 单人通道、积水湿滑、担架无法直接进入',
+          action: '固定上方梁体，确认腿部受压点，扩宽东侧撤离通道',
+          supplyReason: '目标意识清醒并可沟通；暴雨环境存在失温风险，补给优先用于保温与持续联络。',
+          supplyItems: [
+            ['应急保温毯', '可立即提供 · 防止持续失温'],
+            ['防雨罩', '可立即提供 · 隔离雨水'],
+            ['补水包', '医疗端确认吞咽安全后释放'],
+            ['双向语音灯', '保持联络并标记位置']
+          ],
+          supplyBoundary: '系统只推荐物资，不自动给药或投喂；饮水、口服补液与伤口处理须经救援人员确认。',
+          annotations: ['意识清醒 · 可回应呼叫', '腿部受压 · 手部可活动', '上方结构松动', '安全撤离方向 →']
+        },
+        p1: {
+          level: 'stable',
+          title: 'P-01 · 北侧设备间',
+          locationShort: 'B1 北区',
+          image: 'assets/rescue/p01.png',
+          imageAlt: 'P-01 男性受困者位于北侧设备间，附近出口可通行',
+          status: '优先级 #2 · 可延后处置',
+          conclusion: '清理轻型障碍并引导撤离',
+          summary: '目标意识清醒，可自主坐起，左臂活动受限。周边结构相对稳定，可在 P-03 救援展开后组织转移。',
+          consciousness: '清醒 · 回答完整',
+          mobility: '可自主坐起',
+          trapped: '左臂活动受限',
+          risk: '低 · 环境相对稳定',
+          person: '男性约 35-45 岁，深色外套，短发',
+          location: 'B1 北侧设备间 · X6.1 / Y3.8 · 距入口 18.7m',
+          difficulty: '出口存在轻型碎石，单人通道可通过',
+          action: '清理门口碎石，检查左臂伤情，沿北侧出口引导撤离',
+          supplyReason: '目标清醒且可自主活动；建议先提供保温与照明，补水仍需人工确认吞咽安全。',
+          supplyItems: [
+            ['轻量保温毯', '可立即提供 · 等待转移时保温'],
+            ['头灯', '可立即提供 · 辅助自主撤离'],
+            ['补水包', '医疗端确认后小口补水'],
+            ['定位信标', '保持目标位置持续可见']
+          ],
+          supplyBoundary: '左臂固定与药物使用须由专业救援人员处理，机器狗仅释放已确认的非侵入式补给。',
+          annotations: ['意识清醒 · 可自主坐起', '左臂活动受限', '周边结构稳定', '北侧出口可通行 →']
+        },
+        p2: {
+          level: 'unknown',
+          title: 'P-02 · 西侧走廊',
+          locationShort: 'B1 西区',
+          image: 'assets/rescue/p02.png',
+          imageAlt: 'P-02 受困者被大型梁体遮挡，机器狗需要补充第二视角',
+          status: '状态未知 · 补充侦察中',
+          conclusion: '机器狗从西侧获取第二视角',
+          summary: '画面检测到疑似人体轮廓和间歇性活动，但面部与躯干被大型梁体遮挡，暂未获得明确语音回应。',
+          consciousness: '未知 · 无明确回应',
+          mobility: '疑似间歇性活动',
+          trapped: '大型梁体遮挡',
+          risk: '待确认 · 路线受阻',
+          person: '外貌特征暂不可见，需要补充近距离画面',
+          location: 'B1 西侧走廊 · X4.8 / Y11.2 · 距入口 29.5m',
+          difficulty: '正面证据不足，梁体遮挡且通道无法直接进入',
+          action: '机器狗从西侧空间绕行，确认意识、遮挡关系与可进入路线',
+          supplyReason: '意识状态未知，暂不释放入口补给；先建立语音回应并确认呼吸、吞咽与受压状态。',
+          supplyItems: [
+            ['双向语音灯', '启用 · 呼叫并照亮目标区域'],
+            ['定位信标', '启用 · 持续标记疑似目标'],
+            ['保温毯', '待确认 · 目标可接取后释放'],
+            ['补水包', '锁定 · 医疗端确认前不释放']
+          ],
+          supplyBoundary: '未知意识状态下不得自动投喂或给药；机器狗只执行照明、联络和定位任务。',
+          annotations: ['疑似生命迹象', '躯干被梁体遮挡', '意识状态待确认', '机器狗绕行方向 →']
+        }
+      };
+      const targetDialog = root.querySelector('#ar-target-dialog');
+
+      function openTargetDialog(targetId) {
+        const target = rescueTargets[targetId];
+        if (!target) return;
+        targetDialog.dataset.level = target.level;
+        targetDialog.querySelector('[data-detail="title"]').textContent = target.title;
+        targetDialog.querySelector('[data-detail="location-short"]').textContent = target.locationShort;
+        const image = targetDialog.querySelector('[data-detail="image"]');
+        image.src = target.image;
+        image.alt = target.imageAlt;
+        for (const field of ['status', 'conclusion', 'summary', 'consciousness', 'mobility', 'trapped', 'risk', 'person', 'location', 'difficulty', 'action']) {
+          targetDialog.querySelector(`[data-detail="${field}"]`).textContent = target[field];
+        }
+        targetDialog.querySelector('[data-detail="supply-reason"]').textContent = target.supplyReason;
+        targetDialog.querySelector('[data-detail="supply-boundary"]').textContent = target.supplyBoundary;
+        target.supplyItems.forEach(([name, description], index) => {
+          const item = targetDialog.querySelector(`[data-supply-item="${index}"]`);
+          item.innerHTML = '';
+          const title = document.createElement('strong');
+          title.textContent = name;
+          item.append(title, document.createTextNode(description));
+        });
+        target.annotations.forEach((annotation, index) => {
+          targetDialog.querySelector(`[data-detail-annotation="${index}"]`).textContent = annotation;
+        });
+        targetDialog.showModal();
+      }
+
+      root.querySelectorAll('[data-target-detail]').forEach(button => {
+        button.addEventListener('click', () => openTargetDialog(button.dataset.targetDetail));
+      });
+      targetDialog.querySelector('[data-dialog-close]').addEventListener('click', () => targetDialog.close());
+      targetDialog.addEventListener('click', event => {
+        if (event.target === targetDialog) targetDialog.close();
+      });
+      root.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && targetDialog.open) targetDialog.close();
+      });
+
+      const understandingEvents = [
+        {time:'20:18:30',type:'SYSTEM',copy:'Insta360 X4 画面与现场音频已接入，开始持续理解。'},
+        {time:'20:18:31',type:'VISION',copy:'360°画面右后方识别到人体目标 P-03，自动重构东侧走廊视角。'},
+        {time:'20:18:33',type:'AUDIO',copy:'暴雨噪声中分离出咳嗽与微弱呼救，声源方向与 P-03 一致。'},
+        {time:'20:18:36',type:'POSE',copy:'P-03 持续抬手并回应呼叫，判定意识清醒、手部可活动。'},
+        {time:'20:18:39',type:'RISK',copy:'腿部疑似受压，上方构件松动；进入前需要结构支撑。'},
+        {decision:'RESCUE DECISION',level:'critical',title:'P-03 · 需立即救援',score:'置信度 0.93 · 意识清醒 / 腿部受压 / 构件松动'},
+        {time:'20:18:42',type:'VISION',copy:'西侧走廊检测到第二人体轮廓 P-02，但大型梁体遮挡面部与躯干。'},
+        {time:'20:18:44',type:'AUDIO',copy:'P-02 方向暂未获得明确语音回应，生命状态证据不足。'},
+        {decision:'SCOUT DECISION',level:'scout',title:'P-02 · 需要第二视角',score:'机器狗从西侧绕行 · 确认意识 / 遮挡关系 / 可进入路线'}
+      ];
+      const stream = root.querySelector('#ar-understanding-stream');
+      let understandingTimer = null;
+      let understandingIndex = 0;
+
+      function appendUnderstandingEvent(event) {
+        const element = document.createElement('div');
+        if (event.decision) {
+          element.className = `ar-decision-log ${event.level || ''}`;
+          const label = document.createElement('div');
+          label.className = 'ar-decision-label';
+          label.textContent = `${event.decision} · 主动判断`;
+          const title = document.createElement('div');
+          title.className = 'ar-decision-title';
+          title.textContent = event.title;
+          const score = document.createElement('div');
+          score.className = 'ar-decision-score';
+          score.textContent = event.score;
+          element.append(label, title, score);
+        } else {
+          element.className = 'ar-stream-log';
+          const time = document.createElement('span');
+          time.className = 'ar-stream-time';
+          time.textContent = event.time;
+          const type = document.createElement('span');
+          type.className = `ar-stream-type ${event.type.toLowerCase()}`;
+          type.textContent = event.type;
+          const copy = document.createElement('span');
+          copy.className = 'ar-stream-copy';
+          copy.textContent = event.copy;
+          element.append(time, type, copy);
+        }
+        stream.appendChild(element);
+        window.requestAnimationFrame(() => window.requestAnimationFrame(() => element.classList.add('show')));
+        window.setTimeout(() => { stream.scrollTop = stream.scrollHeight; }, 40);
+      }
+
+      function playUnderstandingEvent() {
+        if (understandingIndex >= understandingEvents.length) return;
+        const event = understandingEvents[understandingIndex++];
+        appendUnderstandingEvent(event);
+        understandingTimer = window.setTimeout(playUnderstandingEvent, event.decision ? 1750 : 1050);
+      }
+
+      function startUnderstanding() {
+        window.clearTimeout(understandingTimer);
+        understandingIndex = 0;
+        stream.innerHTML = '';
+        understandingTimer = window.setTimeout(playUnderstandingEvent, 320);
+      }
+
+      startUnderstanding();
+
+    })();
+  </script>
+</div>
+</body>
+</html>
