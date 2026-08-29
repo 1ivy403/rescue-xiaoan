@@ -22,6 +22,7 @@ const REQUIRED_FILES = [
   'submission/pitch-script.md',
   'submission/credits.md',
   'showcase/videos/rescue-xiaoan-demo.mp4',
+  'showcase/videos/index.html',
   'showcase/poster/rescue-xiaoan-poster.png',
 ];
 
@@ -65,6 +66,10 @@ test('root README identifies Rescue Xiaoan and starts with the outcome', () => {
   assert.match(readme, /人到不了的地方，让它先找到生命/);
   assert.match(readme, /showcase\/poster\/rescue-xiaoan-poster\.png/);
   assert.match(readme, /showcase\/videos\/rescue-xiaoan-demo\.mp4/);
+  assert.match(
+    readme,
+    /https:\/\/1ivy403\.github\.io\/rescue-xiaoan\/demo\/rescue-command-center\//,
+  );
   assert.doesNotMatch(readme.slice(0, 800), /安装|Installation/);
 });
 
@@ -87,11 +92,23 @@ test('documentation states the manual robot-control boundary honestly', () => {
   const hardware = readFileSync(path.join(ROOT, 'docs/hardware.md'), 'utf8');
   const robotControl = readFileSync(path.join(ROOT, 'technical/robot-control/README.md'), 'utf8');
   const combined = `${rootReadme}\n${hardware}\n${robotControl}`;
+  const architecture = rootReadme.match(/## 系统架构([\s\S]*?)## 当前阶段实现边界/)?.[1] ?? '';
 
   assert.match(combined, /手动遥控/);
   assert.match(combined, /未开放 SDK/);
   assert.match(combined, /机械臂.*硬件故障/);
+  assert.match(rootReadme, /## 当前阶段实现边界[\s\S]*手动遥控/);
+  assert.doesNotMatch(architecture, /现场操作员|手动遥控/);
   assert.doesNotMatch(rootReadme, /机器狗自主/);
+});
+
+test('public video page embeds the project demo with native controls', () => {
+  const page = readFileSync(path.join(ROOT, 'showcase/videos/index.html'), 'utf8');
+  assert.match(page, /<video[^>]*\bcontrols\b/);
+  assert.match(page, /src="\.\/rescue-xiaoan-demo\.mp4"/);
+  assert.match(page, /playsinline/);
+  assert.doesNotMatch(page, /autoplay/);
+  assert.doesNotMatch(page, /https?:\/\/(?:cdn|unpkg|jsdelivr)/);
 });
 
 test('repository excludes secrets, caches, model weights, and oversized files', () => {

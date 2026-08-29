@@ -11,4 +11,5 @@
 
 ## 作品演示视频
 
+- [网页直接观看](https://1ivy403.github.io/rescue-xiaoan/showcase/videos/)
 - [`rescue-xiaoan-demo.mp4`](videos/rescue-xiaoan-demo.mp4)：58.75 秒完整作品演示，720p，H.264/AAC。

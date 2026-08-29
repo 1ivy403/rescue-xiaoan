@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Rescue Xiaoan 全景感知 AI 搜救机器狗作品演示视频">
+  <title>Rescue Xiaoan · 作品演示</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #080a09;
+      --surface: #111411;
+      --line: #2a302b;
+      --text: #f4f5f2;
+      --muted: #a0a69f;
+      --accent: #ff5a1f;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 76px;
+      padding: 16px 32px;
+      border-top: 4px solid var(--accent);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand strong {
+      color: var(--accent);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    header a {
+      color: var(--text);
+      font-size: 14px;
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+      padding-bottom: 3px;
+    }
+
+    main {
+      width: min(1280px, 100%);
+      margin: auto;
+      padding: 40px 32px 52px;
+    }
+
+    .heading {
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.25;
+      font-weight: 650;
+    }
+
+    .heading p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .player {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid var(--line);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
+    }
+
+    video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 680px) {
+      header {
+        min-height: 68px;
+        padding: 14px 18px;
+      }
+
+      .brand span { display: none; }
+      main { padding: 28px 16px 38px; }
+      h1 { font-size: 27px; }
+      .heading p { font-size: 15px; }
+      .meta { flex-direction: column; gap: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <strong>RESCUE XIAOAN</strong>
+      <span>全景感知 AI 搜救机器狗</span>
+    </div>
+    <a href="https://github.com/1ivy403/rescue-xiaoan">项目仓库</a>
+  </header>
+
+  <main>
+    <div class="heading">
+      <h1>作品演示</h1>
+      <p>人到不了的地方，让它先找到生命。</p>
+    </div>
+
+    <div class="player">
+      <video controls playsinline preload="metadata" src="./rescue-xiaoan-demo.mp4">
+        当前浏览器不支持视频播放。
+      </video>
+    </div>
+
+    <div class="meta">
+      <span>58.75 秒 · 1280 × 720</span>
+      <span>H.264 / AAC</span>
+    </div>
+  </main>
+</body>
+</html>
