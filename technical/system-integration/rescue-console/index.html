@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIRSHOT RESCUE · 搜救指挥台</title>
+<style>
+/* ================= 基础 ================= */
+:root{
+  --bg:#070b11; --panel:#0d141d; --panel2:#101a26; --line:#1c2a3a; --line2:#26374b;
+  --txt:#dbe7f3; --dim:#7d93ab; --faint:#4a5f76;
+  --cyan:#22d3ee; --green:#4ade80; --red:#f87171; --amber:#fbbf24; --purple:#c084fc; --blue:#60a5fa;
+  --mono:"Cascadia Code",Consolas,"JetBrains Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--txt);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;font-size:13px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#22303f;border-radius:4px}
+::-webkit-scrollbar-track{background:transparent}
+body{padding:10px;min-width:1500px}
+.mono{font-family:var(--mono)}
+
+/* ================= 头部状态栏 ================= */
+header{
+  display:flex;align-items:center;gap:16px;padding:8px 16px;margin-bottom:10px;
+  background:linear-gradient(180deg,#0e1824,#0b121b);border:1px solid var(--line);border-radius:8px;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,#0ea5b7,#155e75);
+  display:flex;align-items:center;justify-content:center;font-weight:900;color:#e0fbff;font-size:15px;font-family:var(--mono)}
+.logo h1{font-size:16px;letter-spacing:2px;font-family:var(--mono)}
+.logo h1 em{font-style:normal;color:var(--cyan)}
+.logo .sub{font-size:11px;color:var(--dim);letter-spacing:1px}
+.hspace{flex:1}
+.hstat{display:flex;flex-direction:column;align-items:flex-end;gap:1px;padding:0 12px;border-left:1px solid var(--line)}
+.hstat .k{font-size:10px;color:var(--faint);letter-spacing:1px}
+.hstat .v{font-size:14px;font-family:var(--mono);color:var(--txt)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:5px;animation:pulse 2s infinite}
+.dot.off{background:#64748b;animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+#clock{font-family:var(--mono);font-size:15px;color:var(--cyan)}
+select,button,.btn{
+  background:#122030;color:var(--txt);border:1px solid var(--line2);border-radius:5px;
+  padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s;
+}
+button:hover,.btn:hover{border-color:var(--cyan);color:#fff;background:#16304a}
+button:active{transform:translateY(1px)}
+button.primary{background:#0c4a6e;border-color:#0e7490;color:#bae6fd}
+button.primary:hover{background:#0e7490}
+button.success{background:#14532d;border-color:#16a34a;color:#bbf7d0}
+button.warn{background:#451a03;border-color:#b45309;color:#fde68a}
+button:disabled{opacity:.4;cursor:not-allowed}
+
+/* ================= 布局 ================= */
+.row-main{display:grid;grid-template-columns:5fr 4fr 3fr;gap:10px;margin-bottom:10px}
+.row-bottom{display:grid;grid-template-columns:1fr 1fr 1fr 1.15fr;gap:10px;margin-bottom:10px}
+.row-foot{display:grid;grid-template-columns:5fr 3fr 4fr;gap:10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
+.p-head{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);background:var(--panel2)}
+.p-head .tag{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:3px;background:#0c2a3a;color:var(--cyan);border:1px solid #155e75}
+.p-head .t{font-size:12.5px;font-weight:600;letter-spacing:.5px}
+.p-head .sub{font-size:10.5px;color:var(--faint);font-family:var(--mono)}
+.p-head .fill{flex:1}
+.p-body{padding:10px;flex:1;display:flex;flex-direction:column;gap:8px;min-height:0}
+
+/* ================= VISION 面板 ================= */
+#panoWrap{position:relative;border-radius:6px;overflow:hidden;border:1px solid var(--line2);background:#000}
+#panoCanvas{display:block;width:100%;height:330px}
+#panoWrap.night #panoCanvas{filter:brightness(1.45) contrast(1.12) saturate(1.05)}
+#panoWrap .rainfx{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(115deg,transparent 0 14px,rgba(120,170,220,.045) 14px 15px);display:none}
+#panoWrap.rain .rainfx{display:block}
+.pano-hud{position:absolute;top:8px;left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none;font-family:var(--mono);font-size:11px}
+.pano-hud .lft{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:2px 8px;border-radius:4px;background:rgba(7,14,20,.72);border:1px solid var(--line2);color:#a8c2d8;backdrop-filter:blur(2px)}
+.chip.live{color:#fecaca;border-color:#7f1d1d}
+.chip.live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:5px;animation:pulse 1.2s infinite;font-style:normal;vertical-align:1px}
+.chip.on{color:#bbf7d0;border-color:#166534}
+#camCtrls{display:flex;gap:6px;flex-wrap:wrap}
+#camCtrls button{font-size:11px;padding:3px 9px}
+#pipWrap{position:relative;border:1px solid var(--line2);border-radius:6px;overflow:hidden;background:#000;cursor:grab}
+#pipWrap:active{cursor:grabbing}
+#pipCanvas{display:block;width:100%;height:196px}
+.pip-label{position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:10px;color:var(--cyan);background:rgba(7,14,20,.72);padding:2px 7px;border-radius:4px;border:1px solid #155e75;pointer-events:none}
+.pip-hint{position:absolute;bottom:6px;right:8px;font-family:var(--mono);font-size:10px;color:var(--dim);background:rgba(7,14,20,.72);padding:2px 7px;border-radius:4px;pointer-events:none}
+#bearingCanvas{display:block;width:100%;height:52px;border:1px solid var(--line2);border-radius:6px;background:#0a1017}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--dim);font-family:var(--mono)}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+/* ================= 理解流 ================= */
+#streamPanel .p-body{padding:0}
+#streamList{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px}
+.evt{display:flex;gap:8px;padding:6px 8px;border-radius:5px;background:#0b1520;border-left:2px solid var(--faint);animation:evtIn .3s ease}
+@keyframes evtIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.evt .tm{font-family:var(--mono);font-size:10.5px;color:var(--faint);white-space:nowrap;padding-top:1px}
+.evt .bd{font-family:var(--mono);font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;height:fit-content}
+.evt .tx{flex:1;font-size:12px;line-height:1.45}
+.evt .cf{font-family:var(--mono);font-size:10.5px;color:var(--dim);white-space:nowrap;padding-top:1px}
+.evt.SYS{border-left-color:#64748b}.evt.SYS .bd{background:#1e293b;color:#94a3b8}
+.evt.VIS{border-left-color:var(--cyan)}.evt.VIS .bd{background:#083344;color:var(--cyan)}
+.evt.AUD{border-left-color:var(--amber)}.evt.AUD .bd{background:#422006;color:var(--amber)}
+.evt.PSE{border-left-color:var(--purple)}.evt.PSE .bd{background:#2e1065;color:var(--purple)}
+.evt.RSK{border-left-color:var(--red)}.evt.RSK .bd{background:#450a0a;color:var(--red)}
+.evt.RPT{border-left-color:var(--blue)}.evt.RPT .bd{background:#172554;color:var(--blue)}
+.evt.CMD{border-left-color:var(--green)}.evt.CMD .bd{background:#14532d;color:var(--green)}
+.stream-foot{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)}
+.stream-foot .cell{padding:8px 6px;text-align:center;border-right:1px solid var(--line)}
+.stream-foot .cell:last-child{border-right:none}
+.stream-foot .k{font-size:10px;color:var(--faint);margin-bottom:2px}
+.stream-foot .v{font-family:var(--mono);font-size:15px;color:var(--cyan)}
+.stream-foot .v.g{color:var(--green)}
+
+/* 实时感知状态条（LIVE · 每秒 stats 事件驱动） */
+#liveBar{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--line);background:#0a1220;flex:none}
+#liveBar.off{display:none}
+.lb-cell{padding:7px 4px;text-align:center;border-right:1px solid var(--line)}
+.lb-cell:last-child{border-right:none}
+.lb-cell .k{font-size:9.5px;color:var(--faint);margin-bottom:3px}
+.lb-cell .v{font-family:var(--mono);font-size:16px;color:var(--cyan);line-height:1;display:flex;align-items:baseline;justify-content:center;gap:2px}
+.lb-cell .v b{font-weight:700}
+.lb-cell .v i{font-style:normal;font-size:9px;color:var(--faint)}
+.lb-cell .v b.flash{animation:lbFlash .6s ease}
+@keyframes lbFlash{0%{color:#fff;text-shadow:0 0 10px rgba(34,211,238,.95)}100%{color:var(--cyan)}}
+
+/* ================= 目标卡 & 决策 ================= */
+#rightCol{display:flex;flex-direction:column;gap:10px;min-height:0}
+.tcard{display:flex;gap:10px;padding:8px;border:1px solid var(--line);border-radius:7px;background:#0b1420;cursor:pointer;transition:all .15s}
+.tcard:hover{border-color:var(--cyan);background:#0e1a29}
+.tcard img{width:52px;height:66px;object-fit:cover;border-radius:5px;border:1px solid var(--line2)}
+.tcard .mid{flex:1;min-width:0}
+.tcard .r1{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.tcard .pid{font-family:var(--mono);font-weight:700;font-size:13px}
+.badge{font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600}
+.badge.crit{background:#450a0a;color:var(--red);border:1px solid #7f1d1d}
+.badge.warn{background:#422006;color:var(--amber);border:1px solid #78350f}
+.badge.ok{background:#14532d;color:var(--green);border:1px solid #166534}
+.badge.info{background:#0c2a3a;color:var(--cyan);border:1px solid #155e75}
+.tcard .r2{font-size:11px;color:var(--dim);line-height:1.5}
+.tcard .r3{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.tcard .act{font-size:10px;color:var(--faint);font-family:var(--mono)}
+.tcard.sel{border-color:var(--cyan);background:#0e2030;box-shadow:0 0 0 1px rgba(34,211,238,.25)}
+
+/* 实时目标卡（LIVE · RDK 逐人检测驱动） */
+.tcard.live{position:relative;border-color:#155e75}
+.tcard.live::before{content:"";position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--cyan);animation:livePulse 1.6s infinite;z-index:2}
+@keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 7px rgba(34,211,238,.85)}50%{opacity:.3;box-shadow:none}}
+.tcard.live.out{opacity:.55}
+.tcard .confbar{height:5px;border-radius:3px;background:#0a1017;border:1px solid var(--line);overflow:hidden;margin-top:5px}
+.tcard .confbar i{display:block;height:100%;border-radius:3px}
+.tcard .ph{width:52px;height:66px;border-radius:5px;border:1px dashed var(--line2);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--faint);background:#0a1017;flex:none}
+.tq-empty{font-size:11px;color:var(--faint);padding:14px 8px;text-align:center;border:1px dashed var(--line);border-radius:7px;line-height:1.7}
+
+/* 决策卡 */
+.dcard{border:1px solid var(--line);border-radius:7px;background:#0b1420;padding:9px 10px}
+.dcard.rescue{border-color:#7f1d1d}
+.dcard.scout{border-color:#78350f}
+.dcard .dh{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dcard .dh .tt{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1px}
+.dcard .dh .fill{flex:1}
+.dcard .dt{font-size:11.5px;color:var(--dim);line-height:1.5;margin-bottom:7px}
+.dcard .conf{font-family:var(--mono);color:var(--red);font-weight:700}
+.dcard .dbtns{display:flex;gap:6px}
+.dcard .dbtns button{font-size:11px;padding:4px 10px}
+.dcard .dstat{font-size:11px;color:var(--green);font-family:var(--mono);padding:2px 0}
+.dcard .opts{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line2);flex-direction:column;gap:6px}
+.dcard .opts.open{display:flex}
+.opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:#0d1826;cursor:pointer;font-size:11.5px}
+.opt:hover{border-color:var(--amber)}
+.opt .on{margin-left:auto;font-family:var(--mono);color:var(--amber);font-size:10px}
+
+/* ================= AUDIO / POSE / RISK / MAP ================= */
+.wave-wrap{position:relative;border:1px solid var(--line2);border-radius:6px;background:#0a1017;overflow:hidden}
+#waveCanvas{display:block;width:100%;height:88px}
+.wave-tag{position:absolute;top:5px;left:8px;font-family:var(--mono);font-size:10px;color:var(--faint)}
+.mic-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim)}
+.mic-row .v{font-family:var(--mono);color:var(--amber)}
+.aud-evts{display:flex;flex-direction:column;gap:4px;max-height:96px;overflow-y:auto}
+.aevt{display:flex;align-items:center;gap:8px;font-size:11px;padding:4px 8px;background:#0b1520;border-radius:4px;border-left:2px solid var(--amber)}
+.aevt .tm{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.aevt .kw{font-family:var(--mono);color:var(--amber);font-size:10px}
+.aevt .dir{margin-left:auto;font-family:var(--mono);color:var(--cyan);font-size:10px}
+
+.pose-wrap{display:flex;gap:10px}
+#poseCanvas{border:1px solid var(--line2);border-radius:6px;background:#0a1017;width:150px;height:170px;flex:none}
+.pose-info{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+.prow{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;padding:4px 8px;background:#0b1520;border-radius:4px}
+.prow .k{color:var(--dim)}
+.prow .v{font-family:var(--mono);font-weight:600}
+.consc{margin-top:2px;padding:8px;border-radius:6px;background:linear-gradient(135deg,#2e1065,#1a0a33);border:1px solid #6d28d9;text-align:center}
+.consc .lbl{font-size:10px;color:#c4b5fd;letter-spacing:1px;margin-bottom:3px}
+.consc .val{font-family:var(--mono);font-size:26px;font-weight:800;color:var(--purple)}
+.consc .bar{height:5px;background:#2a1245;border-radius:3px;margin-top:6px;overflow:hidden}
+.consc .bar i{display:block;height:100%;background:linear-gradient(90deg,#8b5cf6,#d8b4fe);border-radius:3px}
+
+.risk-list{display:flex;flex-direction:column;gap:6px}
+.rrow{display:flex;align-items:center;gap:8px;font-size:11.5px}
+.rrow .k{width:52px;color:var(--dim)}
+.rrow .bar{flex:1;height:8px;background:#0a1017;border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.rrow .bar i{display:block;height:100%;border-radius:4px;transition:width .6s ease}
+.rrow .v{width:30px;text-align:right;font-family:var(--mono);font-size:11px}
+#riskRadarWrap{display:flex;justify-content:center;padding:2px 0 4px}
+#riskRadar{width:170px;height:150px}
+.risk-adv{font-size:11px;color:var(--amber);background:#2a1a04;border:1px solid #78350f;border-radius:5px;padding:6px 9px;line-height:1.5}
+
+#slamMap{display:block;width:100%;border:1px solid var(--line2);border-radius:6px;background:#0a1017}
+.map-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--dim);font-family:var(--mono)}
+.map-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+
+/* ================= 任务卡 / 物资 / 证据链 ================= */
+.task-card{border:1px solid #7f1d1d;background:linear-gradient(160deg,#1a0d0d,#0d141d);border-radius:7px;padding:10px}
+.task-card .th{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-family:var(--mono)}
+.task-card .th .pri{font-size:11px;font-weight:800;color:#fecaca;background:#450a0a;border:1px solid #7f1d1d;padding:2px 8px;border-radius:4px}
+.task-steps{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.tstep{display:flex;gap:8px;font-size:11.5px;line-height:1.5}
+.tstep .n{flex:none;width:18px;height:18px;border-radius:50%;background:#0c2a3a;color:var(--cyan);border:1px solid #155e75;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700}
+.llm-io{display:flex;flex-direction:column;gap:6px}
+.llm-io .io{font-size:10.5px;font-family:var(--mono);color:var(--faint);background:#0a1017;border:1px solid var(--line);border-radius:4px;padding:5px 8px;line-height:1.5}
+.llm-io .io b{color:var(--dim);font-weight:600}
+.llm-io .io span{color:var(--txt)}
+.io.evd b{color:var(--cyan)}
+.io.out span{color:#bbf7d0}
+
+.sup-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sup{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#0b1520;border:1px solid var(--line);border-radius:5px}
+.sup .ic{font-size:15px;width:20px;text-align:center}
+.sup .nm{font-size:11.5px}
+.sup .fr{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint)}
+.safety-note{font-size:10.5px;color:var(--dim);background:#0d1a12;border:1px solid #166534;border-radius:5px;padding:6px 9px;line-height:1.6}
+.safety-note b{color:var(--green)}
+
+.ev-chain{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px}
+.ev-clip{flex:none;width:104px;border:1px solid var(--line2);border-radius:5px;overflow:hidden;background:#0b1520;cursor:pointer}
+.ev-clip:hover{border-color:var(--cyan)}
+.ev-clip img{width:100%;height:52px;object-fit:cover;display:block}
+.ev-clip .m{padding:3px 6px;font-family:var(--mono);font-size:9.5px;color:var(--dim);display:flex;justify-content:space-between}
+.ev-clip .m b{color:var(--amber);font-weight:600}
+
+/* 证据卡片：关键事件抽帧 → 平面重投影照片（竖版 3:4）*/
+.ev-card{flex:none;width:104px;border:1px solid var(--line2);border-radius:5px;overflow:hidden;background:#0b1520;cursor:pointer;position:relative}
+.ev-card:hover{border-color:var(--cyan)}
+.ev-card img{width:100%;height:118px;object-fit:cover;display:block}
+.ev-card .m{padding:3px 6px;font-family:var(--mono);font-size:9.5px;color:var(--dim);display:flex;flex-direction:column;gap:1px}
+.ev-card .m b{color:var(--cyan);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-card .m span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-card .tag2{position:absolute;top:3px;left:3px;background:rgba(8,16,24,.85);border:1px solid var(--cyan);color:var(--cyan);font-family:var(--mono);font-size:8.5px;padding:1px 4px;border-radius:3px}
+.ev-card.new{animation:evflash 1.2s ease-out}
+@keyframes evflash{0%{border-color:var(--amber);box-shadow:0 0 12px rgba(251,191,36,.55)}100%{border-color:var(--line2);box-shadow:none}}
+.ev-empty{font-size:11px;color:var(--faint);padding:8px 2px}
+.dual-row{display:flex;gap:6px}
+.dual-row button{flex:1;font-size:11px}
+
+/* ================= 弹窗 ================= */
+#modalMask{position:fixed;inset:0;background:rgba(3,7,12,.82);backdrop-filter:blur(3px);display:none;z-index:100;align-items:center;justify-content:center}
+#modalMask.open{display:flex}
+#modal{width:880px;max-width:94vw;max-height:88vh;overflow-y:auto;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+#modal .mh{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel2);z-index:2}
+#modal .mh .t{font-family:var(--mono);font-size:14px;letter-spacing:1px;color:var(--cyan)}
+#modal .mh .fill{flex:1}
+#modal .mbody{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.mtabs{display:flex;gap:6px}
+.mtabs button{font-size:11.5px}
+.mtabs button.on{border-color:var(--cyan);color:var(--cyan);background:#0c2a3a}
+.vital-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.vital{padding:8px;border:1px solid var(--line);border-radius:6px;background:#0b1520;text-align:center}
+.vital .k{font-size:10.5px;color:var(--faint);margin-bottom:4px}
+.vital .v{font-family:var(--mono);font-size:14px;font-weight:700}
+.vital .s{font-size:10px;font-family:var(--mono);margin-top:3px}
+.msec{border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.msec .sh{padding:6px 10px;background:var(--panel2);font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:1px;border-bottom:1px solid var(--line)}
+.msec .sb{padding:9px 12px;font-size:12px;line-height:1.7;color:var(--txt)}
+.kv{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 18px}
+.kv .i{display:flex;gap:8px;font-size:11.5px;padding:2px 0}
+.kv .i .k{color:var(--faint);width:70px;flex:none}
+.kv .i .v{font-family:var(--mono);color:var(--txt)}
+.ai-bars{display:flex;flex-direction:column;gap:6px}
+.ai-bar{display:flex;align-items:center;gap:8px;font-size:11px}
+.ai-bar .k{width:70px;color:var(--dim)}
+.ai-bar .bar{flex:1;height:9px;border-radius:5px;background:#0a1017;border:1px solid var(--line);overflow:hidden}
+.ai-bar .bar i{display:block;height:100%;border-radius:5px}
+.ai-bar .v{width:60px;text-align:right;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:10px;padding:5px 0;border-bottom:1px dashed #16222f;font-size:11.5px}
+.tl-item:last-child{border-bottom:none}
+.tl-item .tt{font-family:var(--mono);font-size:10.5px;color:var(--faint);width:66px;flex:none;padding-top:1px}
+.tl-item .bd{flex:1;line-height:1.5}
+.tl-item .bd b{font-family:var(--mono);font-size:10px;padding:0 5px;border-radius:3px;margin-right:6px;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ 头部状态栏 ═══════════ -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">AR</div>
+    <div>
+      <h1>AIRSHOT <em>RESCUE</em></h1>
+      <div class="sub">搜救指挥台 · X4 全景 × RDK X5 边缘智能 v2.0</div>
+    </div>
+  </div>
+  <div class="hspace"></div>
+  <div class="hstat"><span class="k">链路</span><span class="v" style="color:var(--green)"><span class="dot"></span>UVC·USB3.0</span></div>
+  <div class="hstat"><span class="k">设备</span><span class="v" id="hDev">4/4</span></div>
+  <div class="hstat"><span class="k">回传延迟</span><span class="v" id="hLat" style="color:var(--cyan)">-- ms</span></div>
+  <div class="hstat"><span class="k">机器狗电量</span><span class="v" id="hBat">76%</span></div>
+  <div class="hstat"><span class="k">推理帧率</span><span class="v" id="hFps">-- fps</span></div>
+  <div class="hstat"><span class="k">天气</span><span class="v" style="color:var(--blue);font-size:12px">🌧 24mm/h NW·7m/s</span></div>
+  <div class="hstat"><span class="k">时间</span><span class="v" id="clock">--:--:--</span></div>
+  <button id="btnConnect" class="primary">接入真实数据流</button>
+</header>
+
+<!-- ═══════════ 主行：VISION | 理解流 | 目标+决策 ═══════════ -->
+<div class="row-main">
+
+  <!-- ── 1. VISION：360° 全景虚拟机位 ── -->
+  <div class="panel" id="visionPanel">
+    <div class="p-head">
+      <span class="tag">VISION</span><span class="t">360° 全景 · 虚拟机位重构</span>
+      <span class="fill"></span><span class="sub">CAM-01 · INSTA360 X4 · 8K</span>
+    </div>
+    <div class="p-body">
+      <div id="panoWrap">
+        <canvas id="panoCanvas"></canvas>
+        <div class="rainfx"></div>
+        <div class="pano-hud">
+          <div class="lft">
+            <span class="chip live"><i></i>LIVE</span>
+            <span class="chip" id="hudYaw">朝向 078°</span>
+            <span class="chip" id="hudMode">虚拟机位·自动巡航</span>
+          </div>
+          <div>
+            <span class="chip on" id="hudNight" style="cursor:pointer" onclick="toggleFx('night')">☀ 低照度增强</span>
+            <span class="chip" id="hudRain" style="cursor:pointer" onclick="toggleFx('rain')">☂ 雨幕过滤</span>
+          </div>
+        </div>
+      </div>
+      <div id="camCtrls">
+        <button onclick="setView(0)">北 N</button>
+        <button onclick="setView(90)">东 E</button>
+        <button onclick="setView(180)">南 S</button>
+        <button onclick="setView(270)">西 W</button>
+        <button onclick="focusTarget('P-03')">机位→P-03</button>
+        <button onclick="focusTarget('P-01')">机位→P-01</button>
+        <button onclick="toggleAuto()" id="btnAuto">⏸ 自动巡航</button>
+      </div>
+      <div id="pipWrap">
+        <canvas id="pipCanvas"></canvas>
+        <span class="pip-label">俯视重构 · 视线追踪</span>
+        <span class="pip-hint">拖拽全景可转向</span>
+      </div>
+      <canvas id="bearingCanvas"></canvas>
+      <div class="legend">
+        <span><b style="background:var(--green)"></b>人体检测框</span>
+        <span><b style="background:var(--red)"></b>目标方位(雷达)</span>
+        <span><b style="background:#fff"></b>镜头视线</span>
+        <span><b style="background:var(--amber)"></b>声源方向</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 8. 理解流：多模态实时事件 ── -->
+  <div class="panel" id="streamPanel">
+    <div class="p-head">
+      <span class="tag">STREAM</span><span class="t">多模态实时理解流</span>
+      <span class="fill"></span><span class="sub" id="streamSrc">MOCK · 点击右上「接入真实数据流」</span>
+    </div>
+    <div class="p-body">
+      <div id="liveBar" class="off">
+        <div class="lb-cell"><div class="k">在场人数</div><div class="v"><b id="lbPersons">--</b><i>人</i></div></div>
+        <div class="lb-cell"><div class="k">人脸巡检</div><div class="v"><b id="lbFaces">--</b><i>张</i></div></div>
+        <div class="lb-cell"><div class="k">置信峰值</div><div class="v"><b id="lbScore">--</b></div></div>
+        <div class="lb-cell"><div class="k">BPU 推理</div><div class="v"><b id="lbInfer">--</b><i>ms</i></div></div>
+        <div class="lb-cell"><div class="k">全景流</div><div class="v"><b id="lbFps">--</b><i>fps</i></div></div>
+      </div>
+      <div id="streamList"></div>
+      <div class="stream-foot">
+        <div class="cell"><div class="k">视觉目标</div><div class="v" id="sfVis">0 人</div></div>
+        <div class="cell"><div class="k">音频响应</div><div class="v" id="sfAud">0 路</div></div>
+        <div class="cell"><div class="k">SLAM 轨迹</div><div class="v" id="sfSlam">0.0 m</div></div>
+        <div class="cell"><div class="k">分析状态</div><div class="v g" id="sfRun">RUNNING</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 目标卡 + 指挥决策闭环 ── -->
+  <div id="rightCol">
+    <div class="panel" style="flex:none">
+      <div class="p-head">
+        <span class="tag">TARGETS</span><span class="t">救援目标队列</span>
+        <span class="fill"></span><span class="sub" id="tgtSub">点击查看证据档案</span>
+      </div>
+      <div class="p-body" style="gap:6px">
+        <div id="liveTargets" style="display:none"></div>
+        <div id="demoTargets">
+        <div class="tcard" id="tc-P03" onclick="openModal('P-03')">
+          <img src="assets/target_p03.jpg" alt="P-03">
+          <div class="mid">
+            <div class="r1"><span class="pid" style="color:var(--red)">P-03</span><span class="badge crit">立即处置</span><span class="act">右后方 2 点方向</span></div>
+            <div class="r2">女性 25-35 岁 · 意识清醒 · 腿部受压<br>距入口 36.4m · X12.4/Y8.7</div>
+            <div class="r3"><span class="badge info">V .93</span><span class="badge info">A .86</span><span class="badge info">P .91</span><span class="badge warn">R 高</span></div>
+          </div>
+        </div>
+        <div class="tcard" id="tc-P01" onclick="openModal('P-01')">
+          <img src="assets/target_p01.jpg" alt="P-01">
+          <div class="mid">
+            <div class="r1"><span class="pid" style="color:var(--amber)">P-01</span><span class="badge warn">可延后</span><span class="act">左前方 10 点方向</span></div>
+            <div class="r2">男性 40-50 岁 · 已响应呼叫 · 可自主移动<br>距入口 18.2m · X6.1/Y14.3</div>
+            <div class="r3"><span class="badge info">V .88</span><span class="badge info">A .74</span><span class="badge info">P .83</span><span class="badge ok">R 中</span></div>
+          </div>
+        </div>
+        <div class="tcard" id="tc-P02" onclick="openModal('P-02')">
+          <img src="assets/target_p02.jpg" alt="P-02">
+          <div class="mid">
+            <div class="r1"><span class="pid" style="color:var(--dim)">P-02</span><span class="badge ok">状态未知</span><span class="act">东侧走廊深处</span></div>
+            <div class="r2">轮廓微动 · 待第二视角确认<br>距入口 41.0m · X15.8/Y5.2</div>
+            <div class="r3"><span class="badge info">V .41</span><span class="badge info">A .12</span><span class="badge info">P --</span><span class="badge crit">R 高</span></div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="flex:1;min-height:0">
+      <div class="p-head">
+        <span class="tag">COMMAND</span><span class="t">AI 决策 · 指挥确认闭环</span>
+        <span class="fill"></span><span class="sub">人机协同 · 不自动执行</span>
+      </div>
+      <div class="p-body" style="gap:8px;overflow-y:auto">
+        <div class="dcard rescue" id="dc-rescue">
+          <div class="dh"><span class="tt" style="color:var(--red)">▣ RESCUE DECISION</span><span class="fill"></span><span class="conf" id="dcConf">0.93</span></div>
+          <div class="dt">P-03 需立即救援：意识清醒但腿部受压，上方构件存在松动风险，通道宽度不足。</div>
+          <div class="dbtns" id="dcBtns">
+            <button class="success" onclick="confirmDecision('rescue')">确认执行</button>
+            <button class="warn" onclick="toggleOpts('dcOpts')">调整方案</button>
+          </div>
+          <div class="opts" id="dcOpts">
+            <div class="opt" onclick="pickPlan('A')">方案 A · 结构支撑优先 —— 先加固松动构件再接触 <span class="on">推荐</span></div>
+            <div class="opt" onclick="pickPlan('B')">方案 B · 医疗接触优先 —— 先建立语音安抚与体征评估</div>
+          </div>
+          <div class="dstat" id="dcStat" style="display:none"></div>
+        </div>
+        <div class="dcard scout" id="dc-scout">
+          <div class="dh"><span class="tt" style="color:var(--amber)">◈ SCOUT DECISION</span><span class="fill"></span><span class="conf" style="color:var(--amber)" id="scConf">0.68</span></div>
+          <div class="dt">P-02 状态未知，需第二视角确认。建议机器狗从西侧绕行，避开东侧坍塌区。</div>
+          <div class="dbtns" id="scBtns">
+            <button class="warn" onclick="confirmDecision('scout')">下发任务</button>
+          </div>
+          <div class="dstat" id="scStat" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 次行：AUDIO | POSE | RISK | SLAM ═══════════ -->
+<div class="row-bottom">
+
+  <!-- ── 3. AUDIO：呼救声事件检测 ── -->
+  <div class="panel">
+    <div class="p-head">
+      <span class="tag">AUDIO</span><span class="t">呼救声事件检测</span>
+      <span class="fill"></span><span class="sub">X4 机身麦克风 · VAD+Whisper</span>
+    </div>
+    <div class="p-body">
+      <div class="wave-wrap">
+        <canvas id="waveCanvas"></canvas>
+        <span class="wave-tag">360° 随流音频 · 48kHz</span>
+      </div>
+      <div class="mic-row">
+        <span>音频源</span><span class="v" id="micDoa">X4 机身麦克风</span>
+        <span id="micSt" style="color:var(--dim)">等待 X4 音频流</span>
+        <span style="margin-left:auto" id="micSnr">48 kHz</span>
+      </div>
+      <div class="aud-evts" id="audEvts">
+        <div class="aevt" id="audWait"><span class="tm">--:--:--</span><span>等待 X4 现场录音 · 识别到的语音将转写显示在此</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4. POSE：意识响应判断 ── -->
+  <div class="panel">
+    <div class="p-head">
+      <span class="tag">POSE</span><span class="t">意识响应判断</span>
+      <span class="fill"></span><span class="sub">MoveNet·INT8/BPU</span>
+    </div>
+    <div class="p-body">
+      <div class="pose-wrap">
+        <canvas id="poseCanvas"></canvas>
+        <div class="pose-info">
+          <div class="prow"><span class="k">抬手响应</span><span class="v" style="color:var(--purple)" id="pvHand">持续 12s</span></div>
+          <div class="prow"><span class="k">头部朝向</span><span class="v" style="color:var(--purple)" id="pvHead">回正 · 看向镜头</span></div>
+          <div class="prow"><span class="k">回应呼叫</span><span class="v" style="color:var(--green)" id="pvCall">2/2 次</span></div>
+        </div>
+      </div>
+      <div class="consc">
+        <div class="lbl">CONSCIOUSNESS CONFIDENCE · 意识清醒置信度</div>
+        <div class="val" id="pcVal">0.91</div>
+        <div class="bar"><i id="pcBar" style="width:91%"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. RISK：环境风险识别 ── -->
+  <div class="panel">
+    <div class="p-head">
+      <span class="tag">RISK</span><span class="t">环境风险识别</span>
+      <span class="fill"></span><span class="sub">语义分割·规则引擎</span>
+    </div>
+    <div class="p-body">
+      <div id="riskRadarWrap"><canvas id="riskRadar"></canvas></div>
+      <div class="risk-list" id="riskList"></div>
+      <div class="risk-adv" id="riskAdv">⚠ 构件松动 78 分 · 进入前需结构支撑；通道宽 0.7m，担架无法进入。</div>
+    </div>
+  </div>
+
+  <!-- ── 6. SLAM：战术地图 ── -->
+  <div class="panel">
+    <div class="p-head">
+      <span class="tag">SLAM</span><span class="t">战术地图 · 建图定位</span>
+      <span class="fill"></span><span class="sub">网格 2m · 北向上</span>
+    </div>
+    <div class="p-body">
+      <canvas id="slamMap"></canvas>
+      <div class="map-legend">
+        <span><i style="background:var(--red)"></i>P-03</span>
+        <span><i style="background:var(--amber)"></i>P-01</span>
+        <span><i style="background:var(--faint)"></i>P-02</span>
+        <span><i style="background:var(--cyan)"></i>机器狗</span>
+        <span><i style="background:var(--green)"></i>撤离路线</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 尾行：任务卡 | 物资 | 证据链 ═══════════ -->
+<div class="row-foot">
+
+  <!-- ── 7. 任务卡生成（多模态融合 + LLM） ── -->
+  <div class="panel">
+    <div class="p-head">
+      <span class="tag">LLM</span><span class="t">救援优先级任务卡 · 多模态融合生成</span>
+      <span class="fill"></span><span class="sub" id="llmSrc">规则模板 · 可切 MLC-LLM</span>
+    </div>
+    <div class="p-body">
+      <div class="task-card">
+        <div class="th"><span class="pri">PRIORITY 1</span><span style="color:var(--red);font-size:12px">P-03 · 坍塌区受困人员</span><span class="fill" style="flex:1"></span><span style="font-size:10px;color:var(--faint)" id="llmTime">14:33:05 生成</span></div>
+        <div class="task-steps">
+          <div class="tstep"><span class="n">1</span><span><b style="color:var(--amber)">先支撑</b> —— 对上方松动构件实施临时支撑，确认无二次坍塌</span></div>
+          <div class="tstep"><span class="n">2</span><span><b style="color:var(--purple)">再确认受压点</b> —— 通过语音问询 + 姿态观察定位腿部受压位置</span></div>
+          <div class="tstep"><span class="n">3</span><span><b style="color:var(--cyan)">后拓宽通道</b> —— 通道 0.7m→1.2m，满足担架与双人对向作业</span></div>
+        </div>
+      </div>
+      <div class="llm-io">
+        <div class="io evd"><b>EVIDENCE IN</b> <span>V:0.93 P-03右后2点·腿部受压 | A:0.86 呼救142° | P:0.91 抬手12s | R:HIGH 构件78</span></div>
+        <div class="io out"><b>LLM OUT</b> <span>优先级=1 · 三步任务 · 建议:保温毯+防雨罩 · 10min内接触</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 物资推荐 ── -->
+  <div class="panel">
+    <div class="p-head">
+      <span class="tag">SUPPLY</span><span class="t">物资推荐</span>
+      <span class="fill"></span><span class="sub">背负式维生单元</span>
+    </div>
+    <div class="p-body">
+      <div class="sup-grid">
+        <div class="sup"><span class="ic">🛏</span><span class="nm">应急保温毯</span><span class="fr">×2</span></div>
+        <div class="sup"><span class="ic">☂</span><span class="nm">防雨罩</span><span class="fr">×2</span></div>
+        <div class="sup"><span class="ic">💧</span><span class="nm">补水包</span><span class="fr">×3</span></div>
+        <div class="sup"><span class="ic">💡</span><span class="nm">双向语音灯</span><span class="fr">×1</span></div>
+      </div>
+      <div class="safety-note"><b>安全边界</b>：系统只推荐物资，不自动给药或投喂；饮水、口服补液与伤口处理须经救援人员确认。</div>
+    </div>
+  </div>
+
+  <!-- ── 扩展：事件证据链 + 双向对讲 ── -->
+  <div class="panel">
+    <div class="p-head">
+      <span class="tag">EVIDENCE</span><span class="t">事件证据链 · 关键帧抽取</span>
+      <span class="fill"></span><span class="sub">全景抽帧 → 平面重投影</span>
+    </div>
+    <div class="p-body">
+      <div class="ev-chain" id="evChain">
+        <div class="ev-empty">等待关键事件 · 触发后自动抽帧并重投影为平面照片…</div>
+      </div>
+      <div class="dual-row">
+        <button onclick="BUS.send('start_talk'); pushCmd('开启双向语音对讲')">🎤 双向语音对讲</button>
+        <button onclick="pushCmd('多机位融合 · X4-02 接入东侧走廊')">📡 多机位融合</button>
+      </div>
+      <div class="safety-note" style="border-color:var(--line)"><b>链路</b>：X4 官方 SDK 双鱼眼预览流 → RealTimeStitcher 实时拼接 → TCP 推流 X5 多模态理解 ｜ 关键事件自动抽帧 · 全景重投影为平面取证照片</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 360° 证据分析弹窗 ═══════════ -->
+<div id="modalMask" onclick="if(event.target===this)closeModal()">
+  <div id="modal">
+    <div class="mh">
+      <span class="t" id="modalTitle">360° EVIDENCE ANALYSIS · 证据档案</span>
+      <span class="fill"></span>
+      <button onclick="closeModal()">✕ 关闭</button>
+    </div>
+    <div class="mbody" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════
+   AIRSHOT RESCUE 搜救指挥台 · 前端引擎
+   数据总线：MOCK 生成器 ←可替换→ WebSocket(ws://<X5-IP>:9870)
+   事件格式与 rdk/yolo_pose_client.py 对齐：
+   {type:"person_enter"|"stats", ts, persons, fps, infer_ms,
+    best:{bbox:[x,y,w,h], score, kpts:[[x,y,conf]*17]}}
+   ═══════════════════════════════════════════════════════ */
+
+/* ---------- 全局状态 ---------- */
+const S = {
+  yaw: 78, pitch: 5, fov: 96,          // 虚拟机位：朝向/俯仰/视场角
+  auto: true, autoDir: 1,               // 自动巡航
+  night: false, rain: true,             // 增强开关
+  frame: 0,                             // 模拟直播帧序号
+  lat: 38, fps: 13.7, inferMs: 73,      // 链路统计
+  bestScore: 0,                         // LIVE 置信峰值（心跳条目用）
+  slamDist: 36.4,                       // SLAM 轨迹
+  audioHits: 0, visTargets: 3,
+  t0: Date.now(),
+  mode: "MOCK",                         // MOCK | LIVE
+};
+
+/* 目标世界模型：方位角(0=北,顺时针)、距离、坐标、状态 */
+const TARGETS = {
+  "P-03": {yaw: 142, dist: 5.8, x: 12.4, y: 8.7,  conf: .93, kpts: "raise_hand"},
+  "P-01": {yaw: 300, dist: 9.2, x: 6.1,  y: 14.3, conf: .88, kpts: "stand"},
+  "P-02": {yaw: 96,  dist: 12.1, x: 15.8, y: 5.2,  conf: .41, kpts: "sit"},
+};
+const AUDIO_DOA = 141;   // 声源方位角（与 P-03 对齐 → 交叉验证）
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const pad = n => String(n).padStart(2,"0");
+const nowT = () => { const d=new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+const angDiff = (a,b) => { let d=(a-b)%360; if(d>180)d-=360; if(d<-180)d+=360; return d; };
+
+/* ═══════════ 数据总线（MOCK → WebSocket 可替换）═══════════ */
+const BUS = {
+  ws: null,
+  url: null,          // 当前目标地址
+  retries: 0,         // 连续重连次数（成功后清零）
+  retryTimer: null,
+  unlimited: false,   // 手动接入 → 无限重连；自动接入 → 上限 5 次
+  liveImg: null,     // 服务端推送的实时 JPEG 帧（drawPano 优先使用）
+  liveTs: 0,         // 最近一帧到达时间（超时回退本地素材）
+  framesRx: 0,
+  /* 接入真实流：X5 上跑 ws_server.py 推 JSON 事件 + 二进制 JPEG 帧 */
+  connect(url, manual){
+    clearTimeout(this.retryTimer);
+    this.url = url || this.url || "ws://192.168.1.10:9870";
+    this.unlimited = !!manual;
+    if(manual) this.retries = 0;
+    try{
+      this.ws = new WebSocket(this.url);
+      this.ws.binaryType = "arraybuffer";          // 接收 UVC 二进制 JPEG 帧
+      $("streamSrc").textContent = "连接中 · " + this.url;
+      this.ws.onopen = () => {
+        S.mode = "LIVE"; S.t0 = Date.now(); this.retries = 0;
+        try{ localStorage.setItem("x5ws", this.url); }catch(_){}
+        $("streamSrc").textContent = "LIVE · " + this.url;
+        pushEvt("CMD", "已接入 X5 实时数据流（WebSocket）· 本地仿真已挂起", "--");
+        // 呼救声检测已切换为 X4 机身麦克风链路（ws_server VAD+Whisper），不再用浏览器麦克风
+      };
+      this.ws.onmessage = e => {
+        if(e.data instanceof ArrayBuffer){ BUS.onFrame(e.data); return; }  // 二进制帧
+        try{ BUS.onEvent(JSON.parse(e.data)); }catch(_){}
+      };
+      this.ws.onclose = () => { S.mode = "MOCK"; this.liveImg = null; this._reconnect(); };
+      this.ws.onerror = () => {};                  // 交由 onclose 统一处理重连
+    }catch(_){ $("streamSrc").textContent = "MOCK · WebSocket 不可用"; this._reconnect(); }
+  },
+  /* 断线自动重连：指数退避 1s→1.5s→2.3s… 上限 6s */
+  _reconnect(){
+    if(!this.unlimited && this.retries >= 5){
+      $("streamSrc").textContent = "MOCK · X5 未就绪（自动重连 5 次未成）· 点「接入真实数据流」手动重试";
+      return;
+    }
+    const delay = Math.min(6000, Math.round(1000 * Math.pow(1.5, this.retries++)));
+    $("streamSrc").textContent = "MOCK · 连接断开 · " + (delay/1000).toFixed(1) + "s 后自动重连 " + this.url;
+    clearTimeout(this.retryTimer);
+    this.retryTimer = setTimeout(()=>{ this.connect(this.url, this.unlimited); }, delay);
+  },
+  /* 上行指令 → X5（人机协同：仅回执，不自动执行）extra 附加字段（如声学上报 conf/text/dir） */
+  send(cmd, extra){
+    if(this.ws && this.ws.readyState === 1){
+      try{ this.ws.send(JSON.stringify(Object.assign({cmd, t: Date.now()}, extra || {}))); }catch(_){}
+    }
+  },
+  /* 二进制 JPEG 帧 → Image（双缓冲：先解码完成再切换，避免闪烁） */
+  onFrame(buf){
+    const url = URL.createObjectURL(new Blob([buf], {type: "image/jpeg"}));
+    const im = new Image();
+    im.onload = () => {
+      URL.revokeObjectURL(im.src);
+      /* 帧尺寸变化(如 960×480 → 1920×960) → 同步 bbox 归一化基准 */
+      if(im.naturalWidth > 0 && (im.naturalWidth !== PANO_W || im.naturalHeight !== PANO_H)){
+        PANO_W = im.naturalWidth; PANO_H = im.naturalHeight;
+      }
+    };
+    im.src = url;
+    this.liveImg = im; this.liveTs = Date.now(); this.framesRx++;
+  },
+  /* 统一事件入口：真实/仿真共用（与 rdk/ws_server.py 事件格式对齐） */
+  onEvent(ev){
+    switch(ev.type){
+      case "evt":                                    // 通用叙事事件
+        pushEvt(ev.kind || "SYS", ev.text || "", ev.conf || "");
+        /* VIS 人脸巡检事件携带结构化人脸数 → liveBar 第 2 格（与 YOLO 人体数分列显示） */
+        if(ev.kind === "VIS" && ev.faces != null){
+          const el = $("lbFaces");
+          if(el && el.textContent !== String(ev.faces)){
+            el.textContent = ev.faces; el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+          }
+        }
+        break;
+      case "person_enter":                           // YOLO 逐人检测透传（含 list）
+        if(ev.persons) S.visTargets = ev.persons;
+        if(Array.isArray(ev.list) && ev.list.length){
+          LiveQ.update(ev.list, ev.ts);
+          pushEvt("VIS", `检测到人体目标 ×${ev.list.length} · ` +
+            ev.list.map((p,i)=>`<b style="color:var(--cyan)">T-${String(i+1).padStart(2,"0")}</b> 置信 ${Number(p.score).toFixed(2)} @ ${String(Math.round(bboxAz(p.bbox))).padStart(3,"0")}°`).join(" · "), "");
+        }else{
+          pushEvt("VIS", `检测到人体目标 · ${ev.persons} 人` + (ev.best ? ` · score ${Number(ev.best.score).toFixed(2)}` : ""), "");
+        }
+        break;
+      case "person_leave":
+        LiveQ.onCount(ev.persons);
+        if(typeof ev.persons === "number") S.visTargets = ev.persons;
+        pushEvt("VIS", `目标离开全景视野 · 当前 ${ev.persons} 人`, "");
+        break;
+      case "stats":                                  // 每秒逐人快照 → 状态条 + 目标队列实时刷新
+        S.fps = ev.fps || S.fps; S.inferMs = ev.infer_ms || S.inferMs;
+        if(typeof ev.persons === "number" && ev.persons >= 0) S.visTargets = ev.persons;
+        updateLiveBar(ev);
+        if(Array.isArray(ev.list)) LiveQ.update(ev.list, ev.ts);
+        break;
+      case "pose":                                   // 意识响应面板
+        if(ev.hand) $("pvHand").textContent = ev.hand;
+        if(ev.head) $("pvHead").textContent = ev.head;
+        if(ev.call) $("pvCall").textContent = ev.call;
+        if(typeof ev.conf === "number"){
+          $("pcVal").textContent = ev.conf.toFixed(2);
+          $("pcBar").style.width = (ev.conf*100).toFixed(1) + "%";
+        }
+        break;
+      case "audio": {                                // 呼救声事件（仅 X4 机身麦克风录音, 无本地/浏览器兜底）
+        const waitEl = $("audWait"); if(waitEl) waitEl.remove();
+        const div = document.createElement("div");
+        div.className = "aevt";
+        const conf = typeof ev.conf === "number" ? ev.conf.toFixed(2) : "";
+        const tag = ev.src || "--";
+        const play = ev.wav_b64
+          ? `<span class="kw aply" data-wav="${ev.wav_b64}" style="cursor:pointer;color:var(--cyan)" title="播放 X4 录音">▶ 播放</span>`
+          : "";
+        const dur = ev.dur_ms ? (ev.dur_ms/1000).toFixed(1)+"s " : "";
+        div.innerHTML = `<span class="tm">${nowT()}</span><span>${ev.text || ""}</span>${play}<span class="kw">[${ev.kw || "--"}·${dur}${tag}]</span><span class="dir">↗ ${ev.dir || "--"}</span>`;
+        $("audEvts").prepend(div);
+        S.audioHits++;
+        pushEvt("AUD", (ev.text || "") + " · X4 录音 " + dur + (ev.dir || "--"), conf || "0.86");
+        break;
+      }
+      case "audio_meter":                            // X4 实时音频电平（驱动波形）
+        AUD4.level = ev.rms || 0;
+        AUD4.floor = ev.floor || 0;
+        AUD4.active = !!ev.active;
+        if(!AUD4.seen){
+          AUD4.seen = true;
+          const st = $("micSt");
+          if(st){ st.textContent = "X4 音频流已接入"; st.style.color = "var(--green)"; }
+          pushEvt("SYS", "X4 机身麦克风音频流已接入 · 呼救声检测使用 X4 现场录音", "--");
+        }
+        break;
+      case "risk":                                   // 环境风险（雷达图+分数条重绘）
+        if(Array.isArray(ev.scores) && ev.scores.length){
+          RISKS.length = 0;
+          ev.scores.forEach(([k, v]) => {
+            const val = clamp(+v || 0, 0, 100);
+            RISKS.push({k, v: val, c: val >= 70 ? "#f87171" : val >= 50 ? "#fbbf24" : "#60a5fa"});
+          });
+          initRisk(); drawRadar();
+        }
+        if(ev.advice) $("riskAdv").textContent = ev.advice;
+        break;
+      case "slam":                                   // SLAM 轨迹
+        if(typeof ev.dist === "number") S.slamDist = ev.dist;
+        if(ev.robot){ robot.x = ev.robot.x; robot.y = ev.robot.y; robot.yaw = ev.robot.yaw; }
+        break;
+      case "evidence":                               // 关键事件抽帧 · 全景→平面重投影照片
+        pushEvidence(ev);
+        break;
+    }
+  }
+};
+
+/* ═══════════ X4 机身麦克风声学链路（呼救声检测） ═══════════ */
+/* X4 经 CameraSDK enable_audio 采集现场声音 → exe 以 INAF 推流 →
+   ws_server 解码(AAC/PCM) + 能量 VAD + faster-whisper 转写 → 广播 audio 事件
+   （text=现场原话转写, wav_b64=X4 录音可回放）。本页面不使用浏览器麦克风。 */
+const AUD4 = { level: 0, floor: 0, active: false, seen: false };
+(function bindAudioPlay(){
+  const list = $("audEvts");
+  if(!list) return;
+  list.addEventListener("click", e => {
+    const el = e.target.closest(".aply");
+    if(!el) return;
+    try{
+      const bin = atob(el.dataset.wav);
+      const buf = new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) buf[i] = bin.charCodeAt(i);
+      new Audio(URL.createObjectURL(new Blob([buf], {type:"audio/wav"}))).play();
+    }catch(_){}
+  });
+})();
+
+/* ---------- 理解流 ---------- */
+const BD = {SYS:"SYS",VIS:"VISION",AUD:"AUDIO",PSE:"POSE",RSK:"RISK",RPT:"REPORT",CMD:"COMMAND"};
+function pushEvt(kind, text, conf){
+  const list = $("streamList");
+  const div = document.createElement("div");
+  div.className = "evt "+kind;
+  div.innerHTML = `<span class="tm">${nowT()}</span><span class="bd">${BD[kind]||kind}</span><span class="tx">${text}</span>` + (conf?`<span class="cf">${conf}</span>`:"");
+  list.prepend(div);
+  while(list.children.length > 60) list.removeChild(list.lastChild);
+}
+function pushCmd(text){ pushEvt("CMD", text, "--"); }
+
+/* ═══════════ 实时感知状态条（LIVE · 每秒 stats 事件驱动） ═══════════ */
+function updateLiveBar(ev){
+  const bar = $("liveBar"); if(!bar) return;
+  bar.classList.remove("off");
+  const put = (id, v) => { const el = $(id); if(el.textContent !== String(v)){
+    el.textContent = v; el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); } };
+  put("lbPersons", ev.persons != null ? ev.persons : "--");
+  const bs = Array.isArray(ev.list) && ev.list.length
+    ? Math.max(...ev.list.map(p => p.score || 0))
+    : (ev.best ? ev.best.score : null);
+  if(bs != null) S.bestScore = bs;
+  put("lbScore", bs != null ? Number(bs).toFixed(2) : "--");
+  put("lbInfer", ev.infer_ms != null ? ev.infer_ms : "--");
+  put("lbFps", ev.fps != null ? ev.fps : "--");
+}
+
+/* ═══════════ 实时目标队列（LIVE · RDK 逐人检测事件驱动） ═══════════ */
+/* 事件源: person_enter.list / stats.list（每秒逐人快照 bbox+score）
+   匹配策略: 按方位角就近续接(±40°) → 同一目标跨秒稳定跟踪; 未命中新建, 失配标记离开 */
+let PANO_W = 960, PANO_H = 480;   /* 随实际收到的全景帧尺寸动态更新(onFrame) */
+const bboxAz = b => { const cx = (b[0] + b[2]/2) / PANO_W; return (((1-2*cx)*180)%360+360)%360; };
+const bboxDist = b => { const ang = b[3]/PANO_H*180; return clamp(Math.round(1.7/(2*Math.tan(ang*Math.PI/360))*10)/10, 0.8, 30); };
+const LiveQ = {
+  targets: [], nextId: 1, engaged: false,
+  engage(){
+    if(this.engaged) return; this.engaged = true;
+    $("demoTargets").style.display = "none";
+    $("liveTargets").style.display = "";
+    $("tgtSub").textContent = "LIVE · 实时检测驱动";
+  },
+  update(list, ts){
+    if(!Array.isArray(list) || !list.length){ if(this.engaged) this.render(); return; }
+    this.engage();
+    ts = Date.now();   // 用到达时刻(RDK 板卡时钟不准, 事件 ts 不可信)
+    const used = new Set();
+    list.forEach(p => {
+      if(!Array.isArray(p.bbox)) return;
+      const az = bboxAz(p.bbox);
+      let hit = null, hd = 1e9;
+      this.targets.forEach(t => { if(used.has(t)) return;
+        const d = Math.abs(angDiff(az, t.az)); if(d < hd){ hd = d; hit = t; } });
+      if(hit && hd <= 40){
+        used.add(hit);
+        Object.assign(hit, {score:p.score, az, dist:bboxDist(p.bbox), bbox:p.bbox, lastSeen:ts, state:"in"});
+        if(!hit.img && ts - (hit.thumbTs||0) > 2000){     // 实时缩略图: 2s 节流刷新
+          const th = this.snapshot(p.bbox);
+          if(th){ hit.thumb = th; hit.thumbTs = ts; }
+        }
+      }else{
+        const t = {id:"T-"+String(this.nextId++).padStart(2,"0"), score:p.score, az, dist:bboxDist(p.bbox),
+                   bbox:p.bbox, firstSeen:ts, lastSeen:ts, state:"in", img:null, evCount:0,
+                   log:[[nowT(),"VIS","目标进入全景视野 · 置信 "+Number(p.score).toFixed(2)]]};
+        const th0 = this.snapshot(p.bbox);
+        if(th0){ t.thumb = th0; t.thumbTs = ts; }
+        this.targets.push(t); used.add(t);
+      }
+    });
+    this.targets.forEach(t => { if(!used.has(t) && t.state === "in"){
+      t.state = "out"; t.log.push([nowT(),"VIS","离开全景视野 · 档案保留"]); } });
+    this.targets.sort((a,b) => (a.state==="in"?0:1)-(b.state==="in"?0:1) || (b.score||0)-(a.score||0));
+    /* 档案保留上限: 离场卡仅留最近 3 张, 防止长时运行队列堆积 */
+    const outs = this.targets.filter(t => t.state === "out").sort((a,b) => b.lastSeen - a.lastSeen);
+    if(outs.length > 3) this.targets = this.targets.filter(t => t.state !== "out" || outs.indexOf(t) < 3);
+    this.render();
+  },
+  /* person_leave 兜底: 事件不带 list 时按人数收敛 */
+  onCount(n){
+    if(!this.engaged || typeof n !== "number") return;
+    const ins = this.targets.filter(t => t.state === "in");
+    if(n < ins.length){
+      this.targets.filter(t => t.state === "in").slice(n).forEach(t => {
+        t.state = "out"; t.log.push([nowT(),"VIS","离开全景视野 · 档案保留"]); });
+      this.render();
+    }
+  },
+  /* 全景实时帧按 bbox 裁剪目标缩略图（无证据照片时的实时档案图, 2s 节流刷新） */
+  _snapCanvas: null,
+  snapshot(b){
+    const im = BUS.liveImg;
+    if(!im || !im.naturalWidth || !Array.isArray(b)) return null;
+    /* bbox 外扩 45% 留景深, 保持 4:3 裁剪比例 */
+    const pad = 0.45, cx = b[0]+b[2]/2, cy = b[1]+b[3]/2;
+    let w = b[2]*(1+2*pad), h = b[3]*(1+2*pad);
+    if(w/h < 4/3) w = h*4/3; else h = w*3/4;
+    let x = cx-w/2, y = cy-h/2;
+    /* 越界钳制(不做环绕拼接, 简单裁到画面内) */
+    x = clamp(x, 0, im.naturalWidth-w); y = clamp(y, 0, im.naturalHeight-h);
+    if(w < 8 || h < 8) return null;
+    if(!this._snapCanvas) this._snapCanvas = document.createElement("canvas");
+    const cv = this._snapCanvas; cv.width = 128; cv.height = 96;
+    const ctx = cv.getContext("2d");
+    try{ ctx.drawImage(im, x, y, w, h, 0, 0, 128, 96); }catch(_){ return null; }
+    try{ return cv.toDataURL("image/jpeg", 0.82); }catch(_){ return null; }
+  },
+  /* 证据照片 → 方位就近目标(±60°)自动关联 */
+  attachEvidence(ev){
+    if(!this.engaged || ev.az == null) return;
+    let hit = null, hd = 1e9;
+    this.targets.forEach(t => { const d = Math.abs(angDiff(ev.az, t.az)); if(d < hd){ hd = d; hit = t; } });
+    if(hit && hd <= 60){
+      hit.img = ev.img; hit.evCount++;
+      hit.log.push([nowT(),"RPT","证据固化 "+(ev.id||"")+" · 重投影照片已关联"]);
+      this.render();
+    }
+  },
+  render(){
+    const box = $("liveTargets"); if(!box) return;
+    if(!this.targets.length){
+      box.innerHTML = `<div class="tq-empty">当前全景视野内无人体目标<br>BPU 持续扫描中 · 目标进入将自动建档</div>`;
+      return;
+    }
+    box.innerHTML = this.targets.map(t => {
+      const in_ = t.state === "in", c = t.score || 0;
+      const lvl = c >= .75 ? ["高置信","crit"] : c >= .5 ? ["跟踪中","warn"] : ["待确认","ok"];
+      const dur = Math.round((Date.now()-t.firstSeen)/1000);
+      const media = t.img ? `<img src="${t.img}" alt="${t.id}">`
+                : t.thumb ? `<img src="${t.thumb}" alt="${t.id}">` : `<div class="ph">◎</div>`;
+      return `<div class="tcard live${in_?"":" out"}" onclick="openLiveModal('${t.id}')">${media}
+        <div class="mid">
+          <div class="r1"><span class="pid" style="color:${in_?"var(--cyan)":"var(--dim)"}">${t.id}</span>
+            <span class="badge ${in_?lvl[1]:"ok"}">${in_?lvl[0]:"离开视野"}</span>
+            <span class="act">方位 ${String(Math.round(t.az)).padStart(3,"0")}° · 约 ${t.dist}m</span></div>
+          <div class="r2">在场 ${dur}s · 置信 ${c.toFixed(2)}${t.evCount?` · 证据 ${t.evCount} 张`:""}</div>
+          <div class="r3"><div class="confbar"><i style="width:${Math.round(c*100)}%;background:${c>=.75?"var(--cyan)":c>=.5?"var(--amber)":"#64748b"}"></i></div></div>
+        </div></div>`;
+    }).join("");
+  }
+};
+/* 实时目标档案弹窗（真实检测数据 + 关联取证照片） */
+function openLiveModal(id){
+  const t = LiveQ.targets.find(x => x.id === id); if(!t) return;
+  $("modalTitle").textContent = "LIVE TARGET · " + t.id + " 实时检测档案";
+  const d = new Date(t.firstSeen);
+  $("modalBody").innerHTML = `
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      ${t.img
+        ? `<img src="${t.img}" style="width:280px;max-width:52%;border-radius:8px;border:1px solid var(--line2);object-fit:contain;background:#0a1017">`
+        : t.thumb
+        ? `<img src="${t.thumb}" style="width:280px;max-width:52%;border-radius:8px;border:1px solid var(--line2);object-fit:contain;background:#0a1017"><div style="font-size:10px;color:var(--faint);margin-top:4px">实时帧裁剪 · 触发关键事件后自动关联取证照片</div>`
+        : `<div style="width:280px;height:340px;border:1px dashed var(--line2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:12px">暂无取证照片 · 触发关键事件后自动关联</div>`}
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+        <div class="msec"><div class="sh">DETECTION · 实时检测</div><div class="sb">
+          <div class="kv">
+            <div class="i"><span class="k">目标编号</span><span class="v">${t.id}</span></div>
+            <div class="i"><span class="k">当前状态</span><span class="v" style="color:${t.state==="in"?"var(--green)":"var(--dim)"}">${t.state==="in"?"在场 · 持续跟踪":"离开视野 · 档案保留"}</span></div>
+            <div class="i"><span class="k">置信度</span><span class="v" style="color:var(--cyan)">${(t.score||0).toFixed(2)}</span></div>
+            <div class="i"><span class="k">方位角</span><span class="v">${String(Math.round(t.az)).padStart(3,"0")}°</span></div>
+            <div class="i"><span class="k">估算距离</span><span class="v">约 ${t.dist} m（检测框高度换算）</span></div>
+            <div class="i"><span class="k">首次发现</span><span class="v">${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}</span></div>
+            <div class="i"><span class="k">检测框</span><span class="v">${Math.round(t.bbox[0])},${Math.round(t.bbox[1])} · ${Math.round(t.bbox[2])}×${Math.round(t.bbox[3])}</span></div>
+          </div>
+        </div></div>
+        <div class="msec"><div class="sh">SOURCE · 数据链路</div><div class="sb" style="font-size:11px;color:var(--dim);line-height:1.7">
+          X4 双鱼眼实时拼接 ${PANO_W}×${PANO_H} 全景 → RDK X5 BPU YOLOv8n-Pose 推理（${Math.round(S.inferMs)}ms/帧）→ 逐人 bbox/置信度每秒回传 → 本档案由真实检测事件驱动
+        </div></div>
+      </div>
+    </div>
+    <div class="msec"><div class="sh">TARGET LOG · 目标事件轨迹</div><div class="sb">
+      <div class="timeline">${(t.log||[]).map(l=>`<div class="tl-item"><span class="tt">${l[0]}</span><span class="bd"><b style="background:#0c2a3a;color:var(--cyan)">${l[1]}</b>${l[2]}</span></div>`).join("")}</div>
+    </div></div>`;
+  $("modalMask").classList.add("open");
+}
+
+/* ═══════════ 证据链：关键事件抽帧 → 全景重投影平面照片 ═══════════ */
+/* 消息格式（rdk/ws_server.py EvidenceRecorder 推送）：
+   {type:"evidence", id:"EV-001", title, meta, az, el, ts, img:"data:image/jpeg;base64,..."} */
+const EVIDENCE = [];
+function pushEvidence(ev){
+  const rec = {
+    id:    ev.id || ("EV-" + String(EVIDENCE.length + 1).padStart(3, "0")),
+    title: ev.title || "关键事件",
+    meta:  ev.meta || "",
+    az:    ev.az, el: ev.el,
+    ts:    ev.ts || Date.now(),
+    img:   ev.img || "",
+    face:  ev.face || null,        /* YuNet 人脸子图(base64 JPEG, 已 CLAHE+锐化增强) */
+    faces: ev.faces || 0,          /* 本帧检出人脸数 */
+    faceConf: ev.face_conf || null
+  };
+  EVIDENCE.unshift(rec);
+  const list = $("evChain");
+  const empty = list.querySelector(".ev-empty");
+  if(empty) empty.remove();
+  const d = document.createElement("div");
+  d.className = "ev-card new";
+  d.innerHTML = `<span class="tag2">${rec.id}</span>` +
+    (rec.face ? `<img src="${rec.face}" alt="人脸特写" style="position:absolute;top:3px;right:3px;width:34px;height:34px;border-radius:4px;border:1px solid var(--amber);object-fit:cover;z-index:2">` : "") +
+    `<img src="${rec.img}">` +
+    `<div class="m"><b>${rec.title}</b><span>${rec.az != null
+      ? "方位 " + String(Math.round(rec.az)).padStart(3, "0") + "° · 俯仰 " + Math.round(rec.el || 0) + "°"
+      : "全景重投影"}</span>` +
+    (rec.faces ? `<span style="color:var(--amber)">人脸 ×${rec.faces}${rec.faceConf ? " · " + Number(rec.faceConf).toFixed(2) : ""}</span>` : "") +
+    `</div>`;
+  d.onclick = () => openEvModal(rec);
+  list.prepend(d);
+  setTimeout(() => d.classList.remove("new"), 1300);
+  while(list.children.length > 12) list.removeChild(list.lastChild);
+  pushEvt("RPT", `证据固化 ${rec.id} · ${rec.title} · 全景帧→平面重投影`, "--");
+}
+function openEvModal(rec){
+  $("modalTitle").textContent = "EVIDENCE · " + rec.id + " 全景抽帧重投影";
+  const d = new Date(rec.ts);
+  $("modalBody").innerHTML = `
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <img src="${rec.img}" style="width:300px;max-width:55%;border-radius:8px;border:1px solid var(--line2);object-fit:contain;background:#0a1017">
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+        ${rec.face ? `
+        <div class="msec"><div class="sh" style="color:var(--amber)">FACE · 人脸特写(YuNet 检出 ×${rec.faces} · 置信 ${rec.faceConf ? Number(rec.faceConf).toFixed(2) : "--"})</div><div class="sb" style="display:flex;gap:10px;align-items:center">
+          <img src="${rec.face}" style="width:96px;height:96px;border-radius:6px;border:1px solid var(--amber);object-fit:cover;background:#0a1017">
+          <span style="font-size:10.5px;color:var(--dim);line-height:1.7">人脸框外扩裁剪 → INTER_CUBIC 放大 → CLAHE 直方图均衡 + 反锐化掩模增强<br>供指挥端人脸比对 / 伤情初筛</span>
+        </div></div>` : ""}
+        <div class="msec"><div class="sh">SHOT · 重投影平面照片</div><div class="sb">
+          <div class="kv">
+            <div class="i"><span class="k">事件标题</span><span class="v">${rec.title}</span></div>
+            <div class="i"><span class="k">取证元数据</span><span class="v">${rec.meta || "--"}</span></div>
+            <div class="i"><span class="k">方位 / 俯仰</span><span class="v" style="color:var(--cyan)">${rec.az != null ? String(Math.round(rec.az)).padStart(3, "0") + "° / " + Math.round(rec.el || 0) + "°" : "--"}</span></div>
+            <div class="i"><span class="k">取证时刻</span><span class="v">${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}</span></div>
+          </div>
+        </div></div>
+        <div class="msec"><div class="sh">PIPELINE · 生成链路</div><div class="sb" style="font-size:11px;color:var(--dim);line-height:1.7">
+          X4 官方 SDK 双鱼眼预览流 → RealTimeStitcher ${PANO_W}×${PANO_H} 等距柱状全景 → X5 多模态实时理解（视觉 / 声学 / 姿态）→ 关键事件触发抽帧 → 针孔模型重投影为平面取证照片（本图）→ CLAHE + 锐化增强${rec.face ? " → YuNet 人脸检测与特写提取" : ""}
+        </div></div>
+      </div>
+    </div>`;
+  $("modalMask").classList.add("open");
+}
+
+/* 仿真事件脚本（演示 90 秒叙事，与 demo 一致） */
+const SCRIPT = [
+  [0,   "SYS", "系统上线 · X4 UVC 模式经 USB 3.0 接入 /dev/video0 · 8K 全景流就绪", "OK"],
+  [1.5, "SYS", "RDK X5 BPU 加载模型：YOLOv8n-Pose(INT8) · MoveNet · 语义分割", "OK"],
+  [3,   "VIS", "全景等距柱状展开完成 · 生成虚拟机位（当前朝向 078°）", "OK"],
+  [5,   "VIS", "检测到人体轮廓 ×3 · 最大目标 P-03 · 右后方 2 点方向", "0.93"],
+  [8,   "VIS", "自动重构东侧走廊视角 · 虚拟机位切换完成", "0.90"],
+  [11,  "AUD", "暴雨噪声(24mm/h)中分离出咳嗽声 · 阵列 DOA 142°", "0.86"],
+  [14,  "AUD", "识别微弱呼救「救命」· 声源方向与 P-03 视觉方位一致 → 交叉验证通过", "0.86"],
+  [17,  "PSE", "P-03 持续抬手 12s · 头部回正看向镜头 · 回应呼叫 2/2 次", "0.91"],
+  [20,  "PSE", "意识清醒置信度 0.91 · 手部可活动 · 推断腿部受压", "0.91"],
+  [23,  "RSK", "上方构件松动风险 · 评分 78/100 · 建议进入前结构支撑", "HIGH"],
+  [26,  "RSK", "通道宽度 0.7m · 单人可通行 · 担架无法进入", "HIGH"],
+  [29,  "RPT", "P-03 证据档案生成完毕 · 定位回传 X12.4/Y8.7 · 距入口 36.4m", "OK"],
+  [32,  "RPT", "任务卡已生成：优先级 1 · 先支撑→再确认受压点→后拓宽通道", "OK"],
+  [35,  "SYS", "SLAM 建图进行中 · 2m 网格 · 北向上 · 轨迹 36.4m", "OK"],
+  [60,  "VIS", "P-02 轮廓微动 · 置信度不足 · 建议第二视角确认", "0.41"],
+  [62,  "AUD", "东向微弱环境声 · 无人员声纹特征", "0.12"],
+];
+let scriptIdx = 0;
+function runScript(){
+  if(S.mode === "LIVE") return;   // LIVE：事件由 X5 服务端推送，本地脚本挂起
+  const el = (Date.now()-S.t0)/1000;
+  while(scriptIdx < SCRIPT.length && SCRIPT[scriptIdx][0] <= el){
+    const [,k,t,c] = SCRIPT[scriptIdx++];
+    pushEvt(k, t, c);
+  }
+  while(evIdx < EV_SCRIPT.length && EV_SCRIPT[evIdx][0] <= el){
+    const [,ev] = EV_SCRIPT[evIdx++];
+    pushEvidence(ev);
+  }
+}
+
+/* 证据链演示脚本（MOCK）：真实 SDK 全景帧重投影素材，LIVE 模式由服务端推送替代 */
+const EV_SCRIPT = [
+  [6,  {id:"EV-001", title:"人体目标进入视野", meta:"person_enter · bbox 中心取景 · 全景帧重投影 480×640", az:142, el:-13, ts:0, img:"assets/ev_person.jpg"}],
+  [15, {id:"EV-002", title:"呼救声源取证",     meta:"audio help「救命」· 阵列 DOA 142° 取景",              az:142, el:0,   ts:0, img:"assets/ev_audio.jpg"}],
+  [21, {id:"EV-003", title:"受困者抬手响应",   meta:"pose · 持续抬手 12s · 广角现场取证",                  az:142, el:-9,  ts:0, img:"assets/ev_pose.jpg"}],
+];
+let evIdx = 0;
+
+/* ═══════════ 全景渲染引擎 ═══════════ */
+/* 素材：live_01~08.jpg (960x480 等距柱状图) 循环播放模拟直播 */
+const FRAMES = Array.from({length:8},(_,i)=>`assets/live_${pad(i+1)}.jpg`);
+const imgs = FRAMES.map(src=>{ const im=new Image(); im.src=src; return im; });
+
+const pano = $("panoCanvas"), pctx = pano.getContext("2d");
+const pip = $("pipCanvas"), ictx = pip.getContext("2d");
+const bear = $("bearingCanvas"), bctx = bear.getContext("2d");
+
+function fitCanvas(cv, ratio){
+  const w = cv.clientWidth || 600;
+  const h = Math.round(w*ratio);
+  const dpr = window.devicePixelRatio||1;
+  cv.width = w*dpr; cv.height = h*dpr;
+  cv.getContext("2d").setTransform(dpr,0,0,dpr,0,0);
+  return {w,h};
+}
+/* ---------- 虚拟机位：等距柱状 → 透视取景 ----------
+   屏幕列 x → yaw = yawC + (x/w-.5)*hFov
+   屏幕行 y → pitch = pitchC + (.5-y/h)*vFov
+   源图 u = yaw/360*W, v = (90-pitch)/180*H */
+function yawToU(yaw, W){ return (((yaw%360)+360)%360)/360*W; }
+
+function drawPano(){
+  /* LIVE 模式优先用服务端推送的实时帧；断流 >3s 或未推帧时回退本地素材 */
+  let img = null;
+  if(S.mode === "LIVE" && BUS.liveImg && Date.now() - BUS.liveTs < 3000) img = BUS.liveImg;
+  if(!img) img = imgs[S.frame % imgs.length];
+  if(!img.complete || !img.naturalWidth) return;
+  const {w,h} = fitCanvas(pano, 0.52);
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const vFov = S.fov / (w/h);
+  const slice = 2;
+  const srcV0 = (90 - (S.pitch + vFov/2))/180*H;
+  const srcVH = Math.max(2, vFov/180*H);
+
+  pctx.imageSmoothingEnabled = true;
+  for(let x=0; x<w; x+=slice){
+    const yaw = S.yaw + (x/w - .5)*S.fov;
+    let u = yawToU(yaw, W);
+    u -= slice * (W/360/S.fov) * .5;             // 列中心对齐
+    let su = ((u%W)+W)%W;
+    const sw = slice * (W/360/S.fov);
+    if(su + sw <= W){
+      pctx.drawImage(img, su, srcV0, sw, srcVH, x, 0, slice, h);
+    }else{                                        // 经度回绕
+      const w1 = W - su;
+      const rw = w1/sw*slice;
+      pctx.drawImage(img, su, srcV0, w1, srcVH, x, 0, rw, h);
+      pctx.drawImage(img, 0, srcV0, sw-w1, srcVH, x+rw, 0, slice-rw, h);
+    }
+  }
+  drawPanoOverlay(w,h);
+}
+
+/* ---------- 全景叠加层：绿框(人体) + 白线(视线) + 标注 ---------- */
+function drawPanoOverlay(w,h){
+  pctx.save();
+  /* 白线：镜头视线（中央垂直线 + 顶部箭头） */
+  pctx.strokeStyle = "rgba(255,255,255,.85)";
+  pctx.lineWidth = 1.5;
+  pctx.setLineDash([6,5]);
+  pctx.beginPath(); pctx.moveTo(w/2, h*.10); pctx.lineTo(w/2, h*.88); pctx.stroke();
+  pctx.setLineDash([]);
+  pctx.fillStyle = "#fff";
+  pctx.beginPath();
+  pctx.moveTo(w/2, h*.06); pctx.lineTo(w/2-6, h*.14); pctx.lineTo(w/2+6, h*.14);
+  pctx.closePath(); pctx.fill();
+  pctx.font = "10px Consolas,monospace";
+  pctx.fillText("LENS "+pad(Math.round(S.yaw))+"°", w/2+9, h*.13);
+
+  /* 各目标：换算屏幕位置画绿框 */
+  for(const [pid,t] of Object.entries(TARGETS)){
+    const dYaw = angDiff(t.yaw, S.yaw);
+    if(Math.abs(dYaw) > S.fov/2 + 8) continue;    // 不在视野内
+    const cx = (dYaw/S.fov + .5) * w;
+    const bh = clamp(h * (7.5/t.dist), h*.22, h*.82);
+    const bw = bh * .42;
+    const by = h*.62 - bh*.5 + t.dist*.4;
+    const inView = Math.abs(dYaw) < S.fov/2 - 4;
+
+    /* 绿框：人体检测框 */
+    pctx.strokeStyle = t.conf > .7 ? "#4ade80" : "#94a3b8";
+    pctx.lineWidth = 2;
+    pctx.setLineDash(t.conf > .7 ? [] : [4,3]);
+    pctx.strokeRect(cx-bw/2, by, bw, bh);
+    pctx.setLineDash([]);
+    /* 角标 */
+    const c = t.conf > .7 ? "#4ade80" : "#94a3b8";
+    pctx.fillStyle = "rgba(8,20,12,.8)";
+    pctx.fillRect(cx-bw/2, by-16, bw+58, 15);
+    pctx.fillStyle = c;
+    pctx.font = "bold 10px Consolas,monospace";
+    pctx.fillText(`${pid} · ${t.conf.toFixed(2)}`, cx-bw/2+4, by-5);
+
+    if(inView && pid==="P-03"){
+      /* 细节标注（呼应 demo 的目标细节叠加） */
+      const notes = [["意识清醒","#c084fc"],["手部可活动","#22d3ee"],["腿部受压","#f87171"],["上方结构松动","#fbbf24"]];
+      notes.forEach((n,i)=>{
+        const lx = cx + bw/2 + 14, ly = by + 6 + i*22;
+        pctx.strokeStyle = "rgba(255,255,255,.28)";
+        pctx.lineWidth = 1;
+        pctx.beginPath(); pctx.moveTo(cx+bw/2, by+bh*.2+i*22); pctx.lineTo(lx-4, ly+8); pctx.stroke();
+        pctx.fillStyle = "rgba(5,12,18,.82)";
+        pctx.fillRect(lx, ly, 86, 16);
+        pctx.fillStyle = n[1];
+        pctx.font = "10px 'Microsoft YaHei',sans-serif";
+        pctx.fillText("▸ "+n[0], lx+4, ly+11.5);
+      });
+    }
+  }
+  pctx.restore();
+}
+
+/* ---------- PiP：俯视重构（红框方位 + 绿色人形 + 白线视线） ---------- */
+function drawPip(){
+  const {w,h} = fitCanvas(pip, 0.5);
+  ictx.clearRect(0,0,w,h);
+  const cx = w/2, cy = h*.82, R = h*.72;          // 相机位 + 最大距离圈
+  const maxD = 14;                                 // 14m 满量程
+
+  /* 距离环 */
+  [4,8,12].forEach(d=>{
+    ictx.strokeStyle = "rgba(60,90,120,.35)";
+    ictx.setLineDash([3,4]); ictx.lineWidth = 1;
+    ictx.beginPath(); ictx.arc(cx, cy, R*d/maxD, Math.PI, 2*Math.PI); ictx.stroke();
+    ictx.setLineDash([]);
+    ictx.fillStyle = "rgba(90,120,150,.6)";
+    ictx.font = "9px Consolas,monospace";
+    ictx.fillText(d+"m", cx + R*d/maxD + 2, cy - 3);
+  });
+  /* 方位刻度 */
+  for(let a=0; a<360; a+=30){
+    const rad = Math.PI + (a-0)/180*Math.PI;
+    ictx.strokeStyle = "rgba(60,90,120,.5)";
+    ictx.beginPath();
+    ictx.moveTo(cx + Math.cos(rad)*R*.94, cy + Math.sin(rad)*R*.94);
+    ictx.lineTo(cx + Math.cos(rad)*R,     cy + Math.sin(rad)*R);
+    ictx.stroke();
+  }
+  ictx.fillStyle = "rgba(120,150,180,.75)";
+  ictx.font = "9px Consolas,monospace";
+  ictx.fillText("N", cx-3, cy-R-4);
+
+  /* 白线：镜头视线 */
+  const vrad = Math.PI + (S.yaw-0)/180*Math.PI;
+  const grd = ictx.createLinearGradient(cx, cy, cx+Math.cos(vrad)*R, cy+Math.sin(vrad)*R);
+  grd.addColorStop(0, "rgba(255,255,255,.95)"); grd.addColorStop(1, "rgba(255,255,255,.15)");
+  ictx.strokeStyle = grd; ictx.lineWidth = 2;
+  ictx.beginPath(); ictx.moveTo(cx, cy); ictx.lineTo(cx+Math.cos(vrad)*R, cy+Math.sin(vrad)*R); ictx.stroke();
+  /* 视场角扇形 */
+  ictx.fillStyle = "rgba(255,255,255,.06)";
+  ictx.beginPath(); ictx.moveTo(cx, cy);
+  ictx.arc(cx, cy, R, Math.PI+(S.yaw-S.fov/2)*Math.PI/180, Math.PI+(S.yaw+S.fov/2)*Math.PI/180);
+  ictx.closePath(); ictx.fill();
+
+  /* 声源方向（琥珀色扇区） */
+  const arad = Math.PI + AUDIO_DOA*Math.PI/180;
+  ictx.fillStyle = "rgba(251,191,36,.18)";
+  ictx.beginPath(); ictx.moveTo(cx, cy);
+  ictx.arc(cx, cy, R, arad-.06, arad+.06); ictx.closePath(); ictx.fill();
+
+  /* 目标：红框 + 绿色人形 */
+  for(const [pid,t] of Object.entries(TARGETS)){
+    const rad = Math.PI + t.yaw*Math.PI/180;
+    const rr = R * clamp(t.dist/maxD, .1, 1);
+    const px = cx + Math.cos(rad)*rr, py = cy + Math.sin(rad)*rr;
+    /* 绿色人形（简化火柴人） */
+    const sc = clamp(10/t.dist, 4, 9);
+    ictx.strokeStyle = t.conf>.7 ? "#4ade80" : "#64748b";
+    ictx.lineWidth = 1.8; ictx.lineCap = "round";
+    ictx.beginPath(); ictx.arc(px, py-sc*2.2, sc*.7, 0, 7); ictx.stroke();          // 头
+    ictx.beginPath();                                                                // 躯干+腿
+    ictx.moveTo(px, py-sc*1.4); ictx.lineTo(px, py+sc*.8);
+    ictx.moveTo(px, py+sc*.8);  ictx.lineTo(px-sc*.7, py+sc*2.2);
+    ictx.moveTo(px, py+sc*.8);  ictx.lineTo(px+sc*.7, py+sc*2.2);
+    ictx.stroke();
+    ictx.beginPath();                                                                // 抬手（P-03）
+    ictx.moveTo(px, py-sc*1.2);
+    if(pid==="P-03") ictx.lineTo(px+sc*1.3, py-sc*2.6);
+    else ictx.lineTo(px-sc*.9, py-sc*.2);
+    ictx.moveTo(px, py-sc*1.2); ictx.lineTo(px+(pid==="P-01"?sc*.9:-sc*.9), py-sc*.2);
+    ictx.stroke();
+    /* 红框：方位定位框 */
+    ictx.strokeStyle = "#f87171"; ictx.lineWidth = 1.5;
+    ictx.strokeRect(px-sc*1.7, py-sc*3.2, sc*3.4, sc*6);
+    ictx.fillStyle = "rgba(7,14,20,.85)";
+    ictx.fillRect(px-sc*1.7, py-sc*3.2-13, 40, 12);
+    ictx.fillStyle = "#f87171";
+    ictx.font = "bold 9px Consolas,monospace";
+    ictx.fillText(pid+" "+t.dist.toFixed(1)+"m", px-sc*1.7+3, py-sc*3.2-4);
+  }
+
+  /* 相机本体 */
+  ictx.fillStyle = "#22d3ee";
+  ictx.beginPath(); ictx.arc(cx, cy, 5, 0, 7); ictx.fill();
+  ictx.fillStyle = "#0a1017";
+  ictx.font = "bold 8px Consolas,monospace";
+  ictx.fillText("X4", cx-6, cy+3);
+  ictx.fillStyle = "rgba(34,211,238,.8)";
+  ictx.font = "9px Consolas,monospace";
+  ictx.fillText("CAM-01 · 360°", cx-32, cy+13);
+}
+
+/* ---------- 方位带：360° 雷达条（红框=目标 / 白线=视线 / 琥珀=声源） ---------- */
+function drawBearing(){
+  const {w,h} = fitCanvas(bear, 0.11);
+  bctx.clearRect(0,0,w,h);
+  /* 刻度：以当前视线为中心 ±fov 展开 */
+  const span = 150;   // 显示 ±150°
+  const toX = a => (angDiff(a, S.yaw)/span + .5) * w;
+  bctx.strokeStyle = "rgba(60,90,120,.5)"; bctx.lineWidth = 1;
+  for(let a=0; a<360; a+=30){
+    const x = toX(a); if(x<6||x>w-6) continue;
+    bctx.beginPath(); bctx.moveTo(x, h*.42); bctx.lineTo(x, h*.72); bctx.stroke();
+    const lb = {0:"N",90:"E",180:"S",270:"W"}[a] || pad(a/10|0);
+    bctx.fillStyle = {0:"#7dd3fc",90:"#7dd3fc",180:"#7dd3fc",270:"#7dd3fc"}[a] || "rgba(90,120,150,.6)";
+    bctx.font = "9px Consolas,monospace"; bctx.textAlign = "center";
+    bctx.fillText(lb, x, h*.34);
+  }
+  /* 声源 */
+  const ax = toX(AUDIO_DOA);
+  if(ax>4 && ax<w-4){
+    bctx.fillStyle = "rgba(251,191,36,.9)";
+    bctx.beginPath(); bctx.moveTo(ax, h*.46); bctx.lineTo(ax-5, h*.9); bctx.lineTo(ax+5, h*.9); bctx.closePath(); bctx.fill();
+  }
+  /* 目标红框 */
+  for(const [pid,t] of Object.entries(TARGETS)){
+    const x = toX(t.yaw); if(x<10||x>w-10) continue;
+    bctx.strokeStyle = "#f87171"; bctx.lineWidth = 1.5;
+    bctx.strokeRect(x-16, h*.42, 32, h*.5);
+    bctx.fillStyle = "#f87171"; bctx.font = "bold 9px Consolas,monospace"; bctx.textAlign = "center";
+    bctx.fillText(pid, x, h*.39);
+  }
+  /* 白线：当前视线（居中） */
+  bctx.strokeStyle = "#fff"; bctx.lineWidth = 2;
+  bctx.beginPath(); bctx.moveTo(w/2, h*.08); bctx.lineTo(w/2, h*.95); bctx.stroke();
+  bctx.textAlign = "center";
+  bctx.fillStyle = "#fff"; bctx.font = "bold 10px Consolas,monospace";
+  bctx.fillText("▾", w/2, h);
+  bctx.textAlign = "left";
+}
+
+/* ---------- 交互：拖拽转向 / 自动巡航 / 机位控制 ---------- */
+let dragging = false, lastX = 0, lastY = 0;
+pano.addEventListener("mousedown", e=>{ dragging=true; lastX=e.clientX; lastY=e.clientY; setAuto(false, true); });
+window.addEventListener("mousemove", e=>{
+  if(!dragging) return;
+  S.yaw -= (e.clientX-lastX) * .22;
+  S.pitch = clamp(S.pitch - (e.clientY-lastY) * .1, -35, 45);
+  lastX = e.clientX; lastY = e.clientY;
+  $("hudMode").textContent = "虚拟机位·手动拖拽";
+});
+window.addEventListener("mouseup", ()=> dragging=false);
+pano.addEventListener("wheel", e=>{ e.preventDefault(); S.fov = clamp(S.fov + e.deltaY*.05, 50, 140); }, {passive:false});
+
+function setView(yaw){ setAuto(false); S.yaw = yaw; S.pitch = 5; $("hudMode").textContent = `虚拟机位·${{0:"北向",90:"东向·走廊",180:"南向",270:"西向"}[yaw]||""}`; }
+function focusTarget(pid){
+  setAuto(false);
+  const t = TARGETS[pid]; if(!t) return;
+  S.yaw = t.yaw; S.pitch = 2;
+  $("hudMode").textContent = `虚拟机位·锁定 ${pid}`;
+  document.querySelectorAll(".tcard").forEach(el=>el.classList.remove("sel"));
+  $("tc-"+pid.replace("-","")).classList.add("sel");
+  pushEvt("VIS", `虚拟机位切换 → ${pid}（${t.yaw}° · ${t.dist}m）· 画面自动重构目标视角`, t.conf.toFixed(2));
+}
+function setAuto(on, silent){
+  S.auto = on;
+  $("btnAuto").textContent = on ? "⏸ 自动巡航" : "▶ 自动巡航";
+  if(!silent && on) $("hudMode").textContent = "虚拟机位·自动巡航";
+}
+function toggleAuto(){ setAuto(!S.auto); }
+function toggleFx(k){
+  S[k] = !S[k];
+  $("panoWrap").classList.toggle(k, S[k]);
+  $("hud"+(k==="night"?"Night":"Rain")).classList.toggle("on", S[k]);
+  pushEvt("SYS", (k==="night"?"低照度增强 Zero-DCE ":"雨幕过滤 Rain Filter ")+(S[k]?"已开启":"已关闭"), "OK");
+}
+
+/* 自动巡航航点（呼应「自动重构东侧走廊视角」） */
+const WAYPOINTS = [78, 96, 142, 300];
+let wpIdx = 0, wpTimer = 0;
+function autoCruise(dt){
+  if(!S.auto || dragging) return;
+  wpTimer += dt;
+  const tgt = WAYPOINTS[wpIdx % WAYPOINTS.length];
+  const d = angDiff(tgt, S.yaw);
+  if(Math.abs(d) < .6 && wpTimer > 7){            // 到点停留 7s 后切下一航点
+    wpIdx++; wpTimer = 0;
+    const names = {78:"默认机位",96:"东侧走廊视角(自动重构)",142:"P-03 受困点",300:"P-01 位置"};
+    pushEvt("VIS", `虚拟机位自动切换 → ${names[tgt]||tgt+"°"}`, "0.90");
+  }else{
+    S.yaw += clamp(d, -1, 1) * (28*dt) * (Math.abs(d)>3 ? 1 : .5);
+    S.yaw = ((S.yaw%360)+360)%360;
+  }
+}
+
+/* ═══════════ POSE：骨架渲染 + 意识置信度动画 ═══════════ */
+const poseCv = $("poseCanvas"), ppc = poseCv.getContext("2d");
+/* 17 关键点（COCO）局部坐标 [x,y] 0-1：P-03 抬手姿态 */
+const KP = {
+  raise_hand: [[.50,.09],[.43,.10],[.57,.10],[.38,.18],[.60,.16],[.37,.30],[.63,.28],[.40,.46],[.60,.44],[.42,.62],[.58,.60],[.44,.78],[.56,.76],[.40,.95],[.46,.97],[.54,.97],[.60,.95]],
+  stand:      [[.50,.08],[.44,.09],[.56,.09],[.40,.17],[.60,.17],[.40,.30],[.60,.30],[.42,.48],[.58,.48],[.44,.66],[.56,.66],[.46,.82],[.54,.82],[.46,.98],[.48,.98],[.52,.98],[.54,.98]],
+  sit:        [[.50,.16],[.44,.17],[.56,.17],[.42,.24],[.58,.24],[.44,.36],[.56,.36],[.48,.52],[.52,.52],[.44,.66],[.56,.66],[.42,.78],[.58,.78],[.38,.92],[.44,.92],[.56,.92],[.62,.92]],
+};
+const BONES = [[0,1],[0,2],[1,3],[2,4],[3,5],[4,6],[5,7],[6,8],[7,9],[8,10],[9,11],[11,13],[11,14],[13,15],[10,12],[12,14],[14,16],[5,6],[1,2]];
+let posePhase = 0, conscV = .82;
+function drawPose(dt){
+  posePhase += dt*2.2;
+  const {w,h} = fitCanvas(poseCv, 1.13);
+  ppc.clearRect(0,0,w,h);
+  const pts = KP.raise_hand.map(([x,y],i)=>{
+    /* 抬手动作：右手臂上下小幅摆动（持续抬手响应） */
+    const wob = Math.sin(posePhase + i*.3) * (i===4||i===6||i===8 ? .035 : .008);
+    return [ (x + wob*0)*w, (y + wob)*h ];
+  });
+  /* 网格背景 */
+  ppc.strokeStyle = "rgba(40,60,80,.35)"; ppc.lineWidth = .5;
+  for(let i=1;i<6;i++){ ppc.beginPath(); ppc.moveTo(0,h*i/6); ppc.lineTo(w,h*i/6); ppc.stroke(); }
+  /* 骨架 */
+  ppc.strokeStyle = "rgba(192,132,252,.9)"; ppc.lineWidth = 2; ppc.lineCap = "round";
+  BONES.forEach(([a,b])=>{ ppc.beginPath(); ppc.moveTo(...pts[a]); ppc.lineTo(...pts[b]); ppc.stroke(); });
+  /* 关键点 */
+  pts.forEach((p,i)=>{
+    ppc.fillStyle = i===0 ? "#fbbf24" : "#22d3ee";
+    ppc.beginPath(); ppc.arc(p[0], p[1], i===0?4:2.6, 0, 7); ppc.fill();
+  });
+  /* 抬手高亮 */
+  ppc.strokeStyle = "rgba(251,191,36,.75)"; ppc.lineWidth = 1; ppc.setLineDash([3,3]);
+  ppc.strokeRect(pts[8][0]-14, pts[8][1]-14, 28, 28);
+  ppc.setLineDash([]);
+  ppc.fillStyle = "#fbbf24"; ppc.font = "9px Consolas,monospace";
+  ppc.fillText("RAISING", pts[8][0]-19, pts[8][1]-19);
+  /* 置信度趋近 0.91（LIVE 模式下由服务端 pose 事件驱动） */
+  if(S.mode !== "LIVE"){
+    conscV += (0.91 - conscV) * dt * .8;
+    $("pcVal").textContent = conscV.toFixed(2);
+    $("pcBar").style.width = (conscV*100).toFixed(1)+"%";
+  }
+}
+
+/* ═══════════ AUDIO：波形（事件仅由 X4 服务端 audio 事件驱动, 无本地演示脚本） ═══════════ */
+const waveCv = $("waveCanvas"), wvc = waveCv.getContext("2d");
+let waveT = 0, calloutFlash = 0;
+function drawWave(dt){
+  waveT += dt*6;
+  const {w,h} = fitCanvas(waveCv, 0.30);
+  wvc.clearRect(0,0,w,h);
+  const mid = h/2;
+  const hasX4 = AUD4.seen;                       // X4 音频流是否已接入
+  const lvl = Math.min(1, AUD4.level*8);         // 实时电平(0-1)
+  /* 底噪波形（X4 实时电平驱动; 未接入时低幅待机纹波） */
+  const amp = hasX4 ? (2 + lvl*h*.36) : 3;
+  wvc.strokeStyle = "rgba(96,165,250,.4)"; wvc.lineWidth = 1;
+  wvc.beginPath();
+  for(let x=0; x<w; x+=2){
+    const n = Math.sin(x*.11+waveT)*amp*.5 + Math.sin(x*.31+waveT*1.7)*amp*.4 + (Math.random()-.5)*amp*.5;
+    x===0 ? wvc.moveTo(x, mid+n) : wvc.lineTo(x, mid+n);
+  }
+  wvc.stroke();
+  /* X4 VAD 采集中 → 琥珀色语音包络 */
+  if(hasX4 && AUD4.active){
+    wvc.strokeStyle = "#fbbf24"; wvc.lineWidth = 2;
+    wvc.beginPath();
+    for(let x=0; x<w; x+=2){
+      const env = Math.abs(Math.sin(x*.05 - waveT*3)) * lvl * (h*.36);
+      const y = mid - env - 2;
+      x===0 ? wvc.moveTo(x,y) : wvc.lineTo(x,y);
+    }
+    wvc.stroke();
+    wvc.fillStyle = "rgba(251,191,36,.9)";
+    wvc.font = "bold 10px Consolas,monospace";
+    wvc.fillText("◉ X4 VOCAL · VAD TRIGGER", 8, 14);
+  }
+  /* 频谱刻度 */
+  wvc.fillStyle = "rgba(74,95,118,.5)"; wvc.font = "8px Consolas,monospace";
+  wvc.fillText(hasX4 ? "X4 机身麦克风 · VAD+Whisper" : "等待 X4 音频流接入…", 8, h-6);
+  /* 状态行: X4 实时电平/信噪比 */
+  if(hasX4){
+    const db = AUD4.level > 1e-6 ? (20*Math.log10(AUD4.level)).toFixed(1) : "-inf";
+    const snr = (AUD4.floor > 1e-6 && AUD4.level > AUD4.floor)
+      ? (20*Math.log10(AUD4.level/AUD4.floor)).toFixed(1) : "--";
+    $("micDoa").textContent = "电平 " + db + " dBFS";
+    $("micSnr").textContent = "信噪比 " + snr + " dB" + (AUD4.active ? " · 采集中" : "");
+  }
+}
+
+/* ═══════════ RISK：雷达图 + 分数条 ═══════════ */
+const RISKS = [
+  {k:"构件松动", v:78, c:"#f87171"}, {k:"通道堵塞", v:64, c:"#fbbf24"},
+  {k:"坍塌风险", v:72, c:"#f87171"}, {k:"积水", v:31, c:"#60a5fa"},
+  {k:"能见度",  v:46, c:"#94a3b8"},
+];
+function initRisk(){
+  const list = $("riskList");
+  list.innerHTML = RISKS.map(r=>`<div class="rrow"><span class="k">${r.k}</span><div class="bar"><i style="width:${r.v}%;background:${r.c}"></i></div><span class="v" style="color:${r.c}">${r.v}</span></div>`).join("") +
+    `<div class="rrow"><span class="k">可通行度</span><div class="bar"><i style="width:42%;background:#4ade80"></i></div><span class="v" style="color:#4ade80">42</span></div>`;
+}
+function drawRadar(){
+  const cv = $("riskRadar"), c = cv.getContext("2d");
+  const dpr = window.devicePixelRatio||1;
+  const w = 170, h = 150;
+  cv.width = w*dpr; cv.height = h*dpr; c.setTransform(dpr,0,0,dpr,0,0);
+  c.clearRect(0,0,w,h);
+  const cx = w/2, cy = h*.56, R = 52, n = RISKS.length;
+  const pt = (i,r)=>[cx + Math.sin(i/n*2*Math.PI - Math.PI/2)*r, cy - Math.cos(i/n*2*Math.PI - Math.PI/2)*r];
+  /* 网格 */
+  [.33,.66,1].forEach(f=>{
+    c.strokeStyle = "rgba(60,90,120,.4)"; c.lineWidth = 1;
+    c.beginPath();
+    for(let i=0;i<=n;i++){ const [x,y]=pt(i%n, R*f); i===0?c.moveTo(x,y):c.lineTo(x,y); }
+    c.stroke();
+  });
+  for(let i=0;i<n;i++){
+    const [x,y]=pt(i,R);
+    c.strokeStyle = "rgba(60,90,120,.4)";
+    c.beginPath(); c.moveTo(cx,cy); c.lineTo(x,y); c.stroke();
+    const [lx,ly]=pt(i,R+13);
+    c.fillStyle = "#7d93ab"; c.font = "9.5px 'Microsoft YaHei',sans-serif"; c.textAlign="center";
+    c.fillText(RISKS[i].k, lx, ly+3);
+  }
+  /* 数据面 */
+  c.beginPath();
+  for(let i=0;i<=n;i++){ const [x,y]=pt(i%n, R*RISKS[i%n].v/100); i===0?c.moveTo(x,y):c.lineTo(x,y); }
+  c.closePath();
+  c.fillStyle = "rgba(248,113,113,.18)"; c.fill();
+  c.strokeStyle = "#f87171"; c.lineWidth = 1.5; c.stroke();
+  for(let i=0;i<n;i++){
+    const [x,y]=pt(i, R*RISKS[i].v/100);
+    c.fillStyle = RISKS[i].c;
+    c.beginPath(); c.arc(x,y,2.5,0,7); c.fill();
+  }
+  c.textAlign="left";
+}
+
+/* ═══════════ SLAM：战术地图 ═══════════ */
+const slamCv = $("slamMap"), sc = slamCv.getContext("2d");
+/* 场地：20m × 12m · 2m 网格 · 北向上 */
+const ROOMS = [
+  {x:1, y:1, w:5, h:4, n:"设备间",  c:"rgba(96,165,250,.10)"},
+  {x:7, y:1, w:4, h:4, n:"储物区",  c:"rgba(148,163,184,.10)"},
+  {x:12,y:1, w:6, h:4, n:"坍塌区",  c:"rgba(248,113,113,.13)", danger:true},
+  {x:1, y:6, w:5, h:4, n:"楼梯间",  c:"rgba(192,132,252,.10)"},
+  {x:7, y:6, w:5, h:4, n:"主通道",  c:"rgba(74,222,128,.08)"},
+  {x:13,y:6, w:5, h:4, n:"积水区",  c:"rgba(96,165,250,.16)", danger:true},
+];
+const robot = {x:3.2, y:10.6, yaw:118};
+let robotMoving = false;
+function drawSlam(dt){
+  const {w,h} = fitCanvas(slamCv, 0.62);
+  const MW = 20, MH = 12;
+  const sx = w/(MW+1), sy = h/(MH+1);
+  const X = m => (m+.5)*sx, Y = m => (m+.5)*sy;
+  sc.clearRect(0,0,w,h);
+
+  /* 2m 网格（北向上） */
+  sc.strokeStyle = "rgba(45,65,88,.5)"; sc.lineWidth = .5;
+  for(let gx=0; gx<=MW; gx+=2){ sc.beginPath(); sc.moveTo(X(gx),Y(0)); sc.lineTo(X(gx),Y(MH)); sc.stroke(); }
+  for(let gy=0; gy<=MH; gy+=2){ sc.beginPath(); sc.moveTo(X(0),Y(gy)); sc.lineTo(X(MW),Y(gy)); sc.stroke(); }
+  /* 北向指示 */
+  sc.fillStyle = "#7dd3fc"; sc.font = "bold 10px Consolas,monospace"; sc.textAlign="center";
+  sc.fillText("N ▲", X(MW/2), Y(0)-4);
+
+  /* 房间 */
+  ROOMS.forEach(r=>{
+    sc.fillStyle = r.c;
+    sc.fillRect(X(r.x), Y(r.y), r.w*sx, r.h*sy);
+    sc.strokeStyle = r.danger ? "rgba(248,113,113,.5)" : "rgba(60,90,120,.6)";
+    sc.lineWidth = 1;
+    sc.strokeRect(X(r.x), Y(r.y), r.w*sx, r.h*sy);
+    sc.fillStyle = r.danger ? "#f87171" : "#8aa2ba";
+    sc.font = "9.5px 'Microsoft YaHei',sans-serif";
+    sc.fillText(r.n, X(r.x+r.w/2), Y(r.y+r.h/2)+3);
+    if(r.danger){ sc.font = "8px Consolas,monospace"; sc.fillText("⚠ RESTRICTED", X(r.x+r.w/2), Y(r.y+r.h/2)+14); }
+  });
+
+  /* 入口 */
+  sc.fillStyle = "#4ade80"; sc.font = "9px Consolas,monospace";
+  sc.fillText("ENTRY", X(.6), Y(MH)+11);
+  sc.strokeStyle = "#4ade80";
+  sc.beginPath(); sc.moveTo(X(0), Y(MH)); sc.lineTo(X(2), Y(MH)); sc.stroke();
+
+  /* 撤离路线（绿色虚线：坍塌区 → 主通道 → 入口） */
+  sc.strokeStyle = "rgba(74,222,128,.75)"; sc.lineWidth = 1.5; sc.setLineDash([5,4]);
+  sc.beginPath();
+  sc.moveTo(X(12.4), Y(8.7)); sc.lineTo(X(9.5), Y(9.5)); sc.lineTo(X(6), Y(10.4)); sc.lineTo(X(1), Y(MH));
+  sc.stroke(); sc.setLineDash([]);
+
+  /* 目标点 */
+  const marks = [["P-03",12.4,8.7,"#f87171"],["P-01",6.1,14.3-8,"#fbbf24"],["P-02",15.8,5.2,"#94a3b8"]];
+  marks.forEach(([pid,mx,my,col])=>{
+    const px = X(mx), py = Y(my);
+    const pulse = 1 + Math.sin(waveT*3 + mx)*0.25;
+    sc.fillStyle = col+"33";
+    sc.beginPath(); sc.arc(px, py, 9*pulse, 0, 7); sc.fill();
+    sc.fillStyle = col;
+    sc.beginPath(); sc.arc(px, py, 4, 0, 7); sc.fill();
+    sc.font = "bold 9px Consolas,monospace"; sc.textAlign = "left";
+    sc.fillText(pid, px+7, py+3);
+  });
+
+  /* 机器狗（scout 下发后移动） */
+  if(robotMoving){ robot.x += dt*1.1; robot.y -= dt*0.4; robot.yaw = Math.atan2(-0.4, 1.1)*180/Math.PI + 90; }
+  const rx = X(clamp(robot.x,0,MW)), ry = Y(clamp(robot.y,0,MH));
+  sc.save(); sc.translate(rx,ry); sc.rotate(robot.yaw*Math.PI/180);
+  sc.fillStyle = "#22d3ee";
+  sc.beginPath(); sc.moveTo(0,-6); sc.lineTo(5,5); sc.lineTo(-5,5); sc.closePath(); sc.fill();
+  sc.restore();
+  sc.fillStyle = "rgba(34,211,238,.9)"; sc.font = "8.5px Consolas,monospace";
+  sc.fillText("DOG-01", rx-16, ry+14);
+  sc.textAlign = "left";
+
+  /* 轨迹长度 + 定位回传 */
+  $("sfSlam").textContent = S.slamDist.toFixed(1)+" m";
+}
+
+/* ═══════════ 360° 证据档案弹窗 ═══════════ */
+const ARCHIVE = {
+  "P-03": {
+    badge:['立即处置','crit'], img:'assets/target_p03.jpg',
+    vitals:[['意识响应','清醒','#c084fc','.91'],['自主活动','手部可动','#22d3ee','.84'],['受困状态','腿部受压','#f87171','HIGH'],['环境风险','构件松动','#fbbf24','78']],
+    traits:'女性 · 约 25-35 岁 · 灰色上衣 · 黑色长发',
+    loc:'X12.4 / Y8.7 · 距入口 36.4m · 坍塌区内侧',
+    diff:'通道宽 0.7m 仅单人可通行 · 担架无法进入 · 上方构件松动',
+    act:'① 结构支撑 → ② 语音安抚确认受压点 → ③ 拓宽通道至 1.2m → ④ 担架转运',
+    bars:[['VISION',.93,'#22d3ee'],['AUDIO',.86,'#fbbf24'],['POSE',.91,'#c084fc'],['RISK',.78,'#f87171']],
+    tl:[['14:31:52','VIS','全景检测到人体轮廓 · 右后方 2 点方向 · 距离约 5.8m'],
+        ['14:32:18','AUD','暴雨噪声中分离出咳嗽 · DOA 142°'],
+        ['14:32:41','AUD','识别呼救「救命」· 声源方向与视觉目标一致 → 交叉验证通过'],
+        ['14:32:55','PSE','持续抬手 12s · 头部回正 · 回应呼叫 2/2 次'],
+        ['14:33:02','RSK','上方构件松动 · 评分 78 · 通道宽 0.7m'],
+        ['14:33:05','RPT','任务卡生成 · 优先级 1 · 建议物资:保温毯/防雨罩']],
+  },
+  "P-01": {
+    badge:['可延后','warn'], img:'assets/target_p01.jpg',
+    vitals:[['意识响应','清醒','#c084fc','.83'],['自主活动','可移动','#4ade80','.88'],['受困状态','无受压','#4ade80','LOW'],['环境风险','积水湿滑','#60a5fa','42']],
+    traits:'男性 · 约 40-50 岁 · 深色外套',
+    loc:'X6.1 / Y6.3 · 距入口 18.2m · 主通道北侧',
+    diff:'积水区边缘 · 可自主沿撤离路线移动',
+    act:'引导自行撤离 · 双向语音灯指引 · 出口处医护复检',
+    bars:[['VISION',.88,'#22d3ee'],['AUDIO',.74,'#fbbf24'],['POSE',.83,'#c084fc'],['RISK',.42,'#60a5fa']],
+    tl:[['14:30:10','VIS','检测到人体 · 左前方 10 点方向'],
+        ['14:30:35','AUD','回应呼叫「这里有人」· DOA 300°'],
+        ['14:31:00','PSE','可站立行走 · 挥手示意'],
+        ['14:31:20','RPT','标记为可延后 · 分配语音灯']],
+  },
+  "P-02": {
+    badge:['状态未知','ok'], img:'assets/target_p02.jpg',
+    vitals:[['意识响应','未知','#94a3b8','--'],['自主活动','轮廓微动','#94a3b8','.41'],['受困状态','未知','#94a3b8','--'],['环境风险','坍塌区','#f87171','HIGH']],
+    traits:'轮廓特征不足 · 待第二视角确认',
+    loc:'X15.8 / Y5.2 · 距入口 41.0m · 坍塌区深处',
+    diff:'坍塌区内部 · 视线遮挡 · 通道受阻',
+    act:'已下发机器狗从西侧绕行侦察 · 优先获取第二视角',
+    bars:[['VISION',.41,'#22d3ee'],['AUDIO',.12,'#fbbf24'],['POSE',.00,'#c084fc'],['RISK',.86,'#f87171']],
+    tl:[['14:31:30','VIS','远端轮廓微动 · 置信度 0.41 · 不足以定性'],
+        ['14:31:45','AUD','东向环境声 · 无人员声纹'],
+        ['14:32:10','CMD','生成 SCOUT 决策 · 机器狗西侧绕行确认']],
+  },
+};
+function openModal(pid){
+  const a = ARCHIVE[pid]; if(!a) return;
+  $("modalTitle").textContent = "360° EVIDENCE ANALYSIS · 证据档案";
+  const col = {crit:'#f87171', warn:'#fbbf24', ok:'#94a3b8'}[a.badge[1]];
+  $("modalBody").innerHTML = `
+    <div class="mtabs">
+      ${Object.keys(ARCHIVE).map(k=>`<button class="${k===pid?'on':''}" onclick="openModal('${k}')">${k}${k===pid?' · 当前':''}</button>`).join("")}
+    </div>
+    <div style="display:flex;gap:14px">
+      <img src="${a.img}" style="width:170px;height:214px;object-fit:cover;border-radius:8px;border:1px solid var(--line2)">
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+        <div class="msec"><div class="sh">LIFE SIGNS · 生命体征评估</div><div class="sb">
+          <div class="vital-grid" style="margin-bottom:10px">
+            ${a.vitals.map(v=>`<div class="vital"><div class="k">${v[0]}</div><div class="v" style="color:${v[2]}">${v[1]}</div><div class="s" style="color:${v[2]}">${v[3]}</div></div>`).join("")}
+          </div>
+          <div class="kv">
+            <div class="i"><span class="k">人员特征</span><span class="v">${a.traits}</span></div>
+            <div class="i"><span class="k">定位回传</span><span class="v">${a.loc}</span></div>
+            <div class="i"><span class="k">搜救困难</span><span class="v" style="color:var(--amber)">${a.diff}</span></div>
+            <div class="i"><span class="k">处置状态</span><span class="v" style="color:${col}">${a.badge[0]}</span></div>
+          </div>
+        </div></div>
+        <div class="msec"><div class="sh">AI CONFIDENCE · 四路置信度</div><div class="sb">
+          <div class="ai-bars">${a.bars.map(b=>`<div class="ai-bar"><span class="k">${b[0]}</span><div class="bar"><i style="width:${b[1]*100}%;background:${b[2]}"></i></div><span class="v">${b[1]?b[1].toFixed(2):'--'}</span></div>`).join("")}</div>
+        </div></div>
+      </div>
+    </div>
+    <div class="msec"><div class="sh">SUGGESTED ACTION · 建议行动</div><div class="sb">${a.act}</div></div>
+    <div class="msec"><div class="sh">FULL ANALYSIS LOG · 完整分析记录</div><div class="sb">
+      <div class="timeline">${a.tl.map(t=>`<div class="tl-item"><span class="tt">${t[0]}</span><span class="bd"><b style="background:#0c2a3a;color:var(--cyan)">${t[1]}</b>${t[2]}</span></div>`).join("")}</div>
+    </div></div>`;
+  $("modalMask").classList.add("open");
+}
+function closeModal(){ $("modalMask").classList.remove("open"); }
+window.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
+
+/* ═══════════ 指挥闭环：确认 / 调整 / 下发 ═══════════ */
+let plan = null;
+function confirmDecision(kind){
+  if(kind==="rescue"){
+    const p = plan || "A";
+    $("dcBtns").style.display = "none";
+    $("dcOpts").classList.remove("open");
+    const st = $("dcStat"); st.style.display = "block";
+    st.textContent = "✓ 已确认 · 方案"+p+" · 救援组执行中 · ETA 6min";
+    pushEvt("CMD", `指挥确认 RESCUE 决策（方案${p}）· 救援组进入坍塌区 · ETA 6min`, "--");
+    pushEvt("RPT", "物资单元已装载：保温毯×2 · 防雨罩×2 · 补水包×3", "OK");
+  }else{
+    $("scBtns").style.display = "none";
+    const st = $("scStat"); st.style.display = "block";
+    st.textContent = "✓ 已下发 · 机器狗正从西侧绕行";
+    robotMoving = true;
+    BUS.send("scout_dispatch");                     // 上行指令 → X5 服务端
+    pushEvt("CMD", "SCOUT 任务下发 · 机器狗从西侧绕行侦察 P-02（避开东侧坍塌区）", "--");
+    setTimeout(()=>{ pushEvt("VIS", "机器狗抵达西侧走廊 · 第二视角回传中", "0.78"); }, 6000);
+  }
+}
+function toggleOpts(id){ $(id).classList.toggle("open"); }
+function pickPlan(p){
+  plan = p;
+  $("dcOpts").classList.remove("open");
+  pushEvt("CMD", `指挥选择方案 ${p} · ${p==="A"?"结构支撑优先":"医疗接触优先"}`, "--");
+  confirmDecision("rescue");
+}
+
+/* ═══════════ 主循环 ═══════════ */
+let lastTs = 0, frameTimer = 0, lastPeriodic = 0;
+function loop(ts){
+  if(!lastTs) lastTs = ts;
+  const dt = Math.min(.05, (ts-lastTs)/1000);
+  lastTs = ts;
+  /* 模拟直播帧推进（8 帧循环 ≈ 12fps 感） */
+  frameTimer += dt;
+  if(frameTimer > .085){ frameTimer = 0; S.frame++; }
+
+  autoCruise(dt);
+  drawPano();
+  drawPip();
+  drawBearing();
+  drawPose(dt);
+  drawWave(dt);
+  drawSlam(dt);
+  runScript();
+
+  /* 脚本播完后：周期性心跳事件（LIVE 模式由服务端 stats 事件替代） */
+  const el = (Date.now()-S.t0)/1000;
+  if(S.mode !== "LIVE" && el > 36 && el - lastPeriodic > 22){
+    lastPeriodic = el;
+    pushEvt("VIS", `持续追踪 P-03 · 推理 ${Math.round(S.inferMs)}ms/帧 · 帧率 ${(S.fps).toFixed(1)} · BPU INT8`, "0.9"+(2+(Math.random()*6|0)));
+  }
+  /* LIVE 心跳：全景扫描摘要（每 12s 一条 · 让理解流持续可感知） */
+  if(S.mode === "LIVE" && el - lastPeriodic > 12){
+    lastPeriodic = el;
+    const azs = LiveQ.targets.filter(t => t.state === "in")
+      .map(t => String(Math.round(t.az)).padStart(3,"0")+"°").join("/");
+    pushEvt("VIS", `全景扫描 · 在场 ${S.visTargets} 人${azs ? " · 方位 " + azs : ""} · 置信峰值 ${S.bestScore ? S.bestScore.toFixed(2) : "--"} · BPU ${Math.round(S.inferMs)}ms · ${S.fps.toFixed(1)}fps`, "");
+  }
+  /* LIVE 目标卡「在场时长」随时间自增（每 2s 重绘一次） */
+  if(S.mode === "LIVE" && LiveQ.engaged && el - (LiveQ._lastPaint||0) > 2){
+    LiveQ._lastPaint = el; LiveQ.render();
+  }
+
+  /* HUD 刷新 */
+  $("hudYaw").textContent = "朝向 "+pad(Math.round(((S.yaw%360)+360)%360))+"°";
+  $("clock").textContent = nowT();
+  /* 回传延迟：UVC 直连抖动 30-50ms */
+  S.lat = 34 + Math.round(Math.abs(Math.sin(ts/2300))*14 + (Math.random()-.5)*4);
+  $("hLat").textContent = S.lat+" ms";
+  $("hFps").textContent = (S.fps + Math.sin(ts/1700)*.6).toFixed(1)+" fps";
+  $("sfVis").textContent = S.visTargets+" 人";
+  $("sfAud").textContent = S.audioHits+" 路";
+  $("hBat").textContent = Math.max(62, 76 - Math.floor((ts-S.t0)/60000)) + "%";
+
+  requestAnimationFrame(loop);
+}
+
+/* ═══════════ 初始化 ═══════════ */
+(function init(){
+  initRisk();
+  drawRadar();
+  $("panoWrap").classList.add("rain");       // 雨幕过滤默认开启（呼应 demo）
+  $("btnConnect").onclick = ()=>{
+    const url = prompt("X5 WebSocket 地址（留空用默认）:", BUS.url || "ws://192.168.1.10:9870");
+    if(url !== null) BUS.connect(url || BUS.url || "ws://192.168.1.10:9870", true);
+  };
+  /* 自动接入 X5：?ws= 参数 → 上次成功地址(localStorage) → 同源主机:9870 → 默认地址
+     页面若从 X5 或同网段主机打开，同源推导即可命中，无需手动输入 */
+  let saved = null; try{ saved = localStorage.getItem("x5ws"); }catch(_){}
+  let qp = null; try{ qp = new URLSearchParams(location.search).get("ws"); }catch(_){}
+  const host = location.hostname;
+  BUS.connect(qp || saved || (host ? "ws://"+host+":9870" : "ws://192.168.1.10:9870"));
+  const wait = setInterval(()=>{
+    const loaded = imgs.filter(im=>im.complete && im.naturalWidth).length;
+    if(loaded === imgs.length){ clearInterval(wait); requestAnimationFrame(loop); }
+  }, 120);
+  /* 6s 后仍未全部加载（素材缺失/离线打开）也启动，避免黑屏 */
+  setTimeout(()=>{ clearInterval(wait); if(!lastTs) requestAnimationFrame(loop); }, 6000);
+})();
+</script>
+</body>
+</html>
