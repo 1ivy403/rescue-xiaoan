@@ -653,6 +653,7 @@ class AudioDetector(threading.Thread):
             return
         frame_len = int(self.SR * self.FRAME_MS / 1000)
         np = self.np
+        buf = np.zeros(0, dtype=np.float32)   # 跨包样本残留: 512B AAC 包 ≈21ms, 不足一 VAD 帧(30ms)
         while True:
             self.wake.wait(timeout=0.5)
             self.wake.clear()
@@ -662,9 +663,14 @@ class AudioDetector(threading.Thread):
                 mono = self._decode(blob)
                 if mono is None or len(mono) == 0:
                     continue
-                # 按 30ms 帧 VAD
-                for i in range(0, len(mono) - frame_len + 1, frame_len):
-                    self._vad_frame(mono[i:i + frame_len])
+                # 累积跨包样本后按整帧切分(旧实现按包独立切帧, 每包不足一帧 → VAD 永不触发)
+                buf = np.concatenate([buf, mono])
+                if len(buf) > self.SR * 5:            # 兜底: 线程卡滞后丢弃旧样本
+                    buf = buf[-frame_len * 20:]
+                n = len(buf) - (len(buf) % frame_len)
+                for i in range(0, n, frame_len):
+                    self._vad_frame(buf[i:i + frame_len])
+                buf = buf[n:]
                 self._meter_tick()
 
     def _vad_frame(self, x):
@@ -738,13 +744,14 @@ class AudioDetector(threading.Thread):
         now = time.time()
         if now - self.meter_t < 1.0 / self.METER_HZ:
             return
+        if not self.frame_rms:          # 无有效帧不占节流窗口(否则首个有效电平被吞)
+            return
         self.meter_t = now
-        if self.frame_rms:
-            rms = self.frame_rms[-1]
-            floor = sorted(self.frame_rms)[max(0, int(len(self.frame_rms) * 0.15) - 1)]
-            self.hub.broadcast_json({"type": "audio_meter",
-                                     "rms": round(rms, 5), "floor": round(floor, 5),
-                                     "active": self.in_utt})
+        rms = self.frame_rms[-1]
+        floor = sorted(self.frame_rms)[max(0, int(len(self.frame_rms) * 0.15) - 1)]
+        self.hub.broadcast_json({"type": "audio_meter",
+                                 "rms": round(rms, 5), "floor": round(floor, 5),
+                                 "active": self.in_utt})
 
 
 # ═══════════════════════════ UVC 抓帧推流 ═══════════════════════════
